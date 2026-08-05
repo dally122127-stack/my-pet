@@ -190,16 +190,26 @@
             setTimeout(() => { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
    
             
+            // 互動結束，解散！
             setTimeout(() => {
                 hugStage.style.display = 'none';
+
+                // ✨ 核心修改：解散時，強行將後台跑偏的隱形座標，拉回剛剛擁抱的真實中間點！
                 firstPet.data.setX(midX - 40);
                 secondPet.data.setX(midX + 160);
+
+                // ✨ 新增這兩行：同步垂直 Y 軸座標，防止兩人在後台走一走上下錯位
+                firstPet.data.setY(midY);
+                secondPet.data.setY(midY);
+
                 firstPet.data.resetState();
                 secondPet.data.resetState();
                 firstPet.data.setHide(false);
                 secondPet.data.setHide(false);
+
                 isHuggingGlobal = false; 
             }, 7000);
+
         }
 
         function checkImageExists(url, success, error) {
