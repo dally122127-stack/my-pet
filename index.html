@@ -142,7 +142,8 @@
             const firstPet = activePets.slice(0, 1).pop();
             const secondPet = activePets.slice(1, 2).pop();
             
-            let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 - 64;
+            // ✨ 將 -64 改成 +0，把整個擁抱畫面往右推進 64 像素，修正偏左的問題！
+            let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 + 0;
             let midY = (firstPet.data.getY() + secondPet.data.getY()) / 2;
             
             firstPet.data.setHide(true);
