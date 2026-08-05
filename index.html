@@ -77,9 +77,15 @@
                 reset: function() { isDragging = false; petState = 'walk'; container.style.display = 'block'; }
             });
 
+            // 動作切換計時器
             setInterval(function() {
                 if (isDragging || isHuggingGlobal) { return; }
+
+                // 🎯 終極鎖死漏洞：只要正在抱抱，強行凍結後台所有的座標加算，不准任何隱形位移！
+                if (isHuggingGlobal === true) { petObj.x = petObj.x; petObj.y = petObj.y; return; }
+
                 if (petState === 'walk') {
+
                     if (Math.random() < 0.8) { 
                         if (Math.random() < 0.15) { walkDirection = (walkDirection === -1) ? 1 : -1; }
                         petObj.x += walkDirection * 12;
@@ -99,8 +105,8 @@
                             const pet2 = activePets.slice(1, 2).pop();
 
                             let dist = Math.abs(pet1.pos.x - pet2.pos.x);
-                            // 當兩隻角色距離小於 100 像素，且滿足隨機率時，準時觸發抱抱！
-                            if (dist < 80 && Math.random() < 0.4) { 
+                            // 當兩隻角色距離小於 50 像素，且滿足隨機率時，準時觸發抱抱！
+                            if (dist < 50 && Math.random() < 0.4) { 
                                 triggerHugEvent(); 
                             }
                         }
