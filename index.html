@@ -2,228 +2,93 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 個性化睡眠版</title>
+    <title>雙人桌寵動態實驗室 - 終極完美修正版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
         .hug-container { position: absolute; width: 256px; height: 128px; z-index: 20; display: none; aspect-ratio: auto; }
         .pet-img { width: auto; height: 100%; cursor: grab; user-select: none; }
         .pet-img:active { cursor: grabbing; }
-        .heart-effect {
-            position: absolute; width: 32px; height: 32px;
-            pointer-events: none; animation: floatUp 1.2s ease-out forwards;
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(0.6); opacity: 0; }
-            20% { opacity: 1; }
-            100% { transform: translateY(-60px) scale(1.1); opacity: 0; }
-        }
+        .heart-effect { position: absolute; width: 32px; height: 32px; pointer-events: none; animation: floatUp 1.2s ease-out forwards; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(0.6); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-60px) scale(1.1); opacity: 0; } }
     </style>
 </head>
 <body>
-
-    <div id="hug-stage" class="hug-container">
-        <img id="hug-img" class="pet-img" src="meet1_face.png" alt="擁抱互動">
-    </div>
-
+    <div id="hug-stage" class="hug-container"><img id="hug-img" class="pet-img" src="meet1_face.png" alt="擁抱"></div>
     <script>
-        // ==========================================
-        // 🎨 繪師專用設定區：在這裡可以單獨決定每個人的睡眠呼吸次數囉！
-        const petsData = [
-            { folder: 'Takumi', sleepBreaths: 12 },  // ✨ Takumi 睡很久（呼吸12下，約5秒）
-            { folder: 'Aotsuki', sleepBreaths: 6 }   // ✨ Aotsuki 保持原樣（呼吸6下，約2.5秒）
-        ];
-        // ==========================================
+        const petsData = [{ folder: 'Takumi', sleepBreaths: 12 }, { folder: 'Aotsuki', sleepBreaths: 6 }];
+        const activePets = []; const hugStage = document.getElementById('hug-stage'); const hugImg = document.getElementById('hug-img'); let isHuggingGlobal = false;
 
-        const activePets = []; 
-        const hugStage = document.getElementById('hug-stage');
-        const hugImg = document.getElementById('hug-img');
-        let isHuggingGlobal = false; 
+        petsData.forEach((cfg, idx) => {
+            const f = cfg.folder; const maxSB = cfg.sleepBreaths;
+            const div = document.createElement('div'); div.className = 'pet-container';
+            const img = document.createElement('img'); img.className = 'pet-img'; img.alt = f; div.appendChild(img); document.body.appendChild(div);
 
-        petsData.forEach((petConfig, index) => {
-            const folderName = petConfig.folder;
-            const myMaxSleepBreaths = petConfig.sleepBreaths; // 🤖 自動讀取每個人自己的睡眠長度
-
-            const container = document.createElement('div');
-            container.className = 'pet-container';
-            const petImg = document.createElement('img');
-            petImg.className = 'pet-img';
-            petImg.alt = folderName;
-            container.appendChild(petImg);
-            document.body.appendChild(container);
-
-            let imgStandL = `${folderName}/shime1.png`;
-            let imgStandR = `${folderName}/shime1_r.png`;
-            let imgDrag = `${folderName}/drag.png`; 
-            let walkFramesL = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
-            let walkFramesR = [`${folderName}/shime2_r.png`, `${folderName}/shime3_r.png`];
-            let imgSitIn = `${folderName}/sit_in.png`;
-            let imgSitOut = `${folderName}/sit_out.png`;
-            let imgStandUp = `${folderName}/stand_up.png`;
+            let sL = `${f}/shime1.png`, sR = `${f}/shime1_r.png`, dg = `${f}/drag.png`;
+            let wkL = [`${f}/shime2.png`, `${f}/shime3.png`], wkR = [`${f}/shime2_r.png`, `${f}/shime3_r.png`];
+            let sIn = `${f}/sit_in.png`, sOut = `${f}/sit_out.png`, sUp = `${f}/stand_up.png`;
+            let spD = `${f}/sleep_down.png`, spIn = `${f}/sleep_in.png`, spOut = `${f}/sleep_out.png`, spUp = `${f}/sleep_up.png`;
             
-            let imgSleepDown = `${folderName}/sleep_down.png`;
-            let imgSleepIn = `${folderName}/sleep_in.png`;
-            let imgSleepOut = `${folderName}/sleep_out.png`;
-            let imgSleepUp = `${folderName}/sleep_up.png`;
-            
-            let isDragging = false; let startX, startY;
-            let petX = 100 + (index * 300); let petY = 200;
-            let currentFrameIndex = 0; let walkDirection = index === 0 ? 1 : -1;
-            
-            let petState = 'walk'; let breathCount = 0; 
-            const maxBreaths = 3; // 坐下喝茶的吸吐次數
+            let isD = false, sX, sY, pX = 100 + (idx * 300), pY = 200, fIdx = 0, dir = idx === 0 ? 1 : -1, state = 'walk', bCnt = 0;
 
-            petImg.src = imgStandL;
-            container.style.left = petX + 'px'; container.style.top = petY + 'px';
-
-            activePets.push({ 
-                container, petImg, 
-                data: { 
-                    getX: () => petX, setX: (v) => { petX = v; container.style.left = v+'px'; }, 
-                    getY: () => petY, setY: (v) => { petY = v; container.style.top = v+'px'; }, 
-                    getIsDragging: () => isDragging, 
-                    setHide: (h) => { container.style.display = h ? 'none' : 'block'; }, 
-                    resetState: () => { petState = 'walk'; } 
-                } 
-            });
+            img.src = sL; div.style.left = pX + 'px'; div.style.top = pY + 'px';
+            activePets.push({ div, img, data: { getX:()=>pX, setX:(v)=>{pX=v;div.style.left=v+'px';}, getY:()=>pY, setY:(v)=>{pY=v;div.style.top=v+'px';}, getIsD:()=>isD, setH:(h)=>{div.style.display=h?'none':'block';}, rst:()=>{state='walk';} } });
 
             setInterval(() => {
-                if (isDragging || isHuggingGlobal) return;
-                
-                // ====== 狀態 1：走路散步 ======
-                if (petState === 'walk') {
-                    if (Math.random() < 0.8) { 
-                        if (Math.random() < 0.15) { walkDirection = walkDirection === -1 ? 1 : -1; }
-                        petX += walkDirection * 12;
-                        if (petX < 0) { petX = 0; walkDirection = 1; }
-                        if (petX > window.innerWidth - 128) { petX = window.innerWidth - 128; walkDirection = -1; }
-                        container.style.left = petX + 'px';
-                        currentFrameIndex = (currentFrameIndex + 1) % walkFramesL.length;
-                        if (walkDirection === -1) { safeSetImg(walkFramesL[currentFrameIndex], imgStandL); } 
-                        else { safeSetImg(walkFramesR[currentFrameIndex], imgStandR); }
-                        petImg.style.transform = 'none'; 
-                        
-                        if (index === 0 && activePets.length === 2) {
-                            const firstPet = activePets.slice(0, 1).pop();
-                            const secondPet = activePets.slice(1, 2).pop();
-                            let dist = Math.abs(firstPet.data.getX() - secondPet.data.getX());
-                            if (dist < 100 && !firstPet.data.getIsDragging() && !secondPet.data.getIsDragging() && Math.random() < 0.4) {
-                                triggerHugEvent();
-                            }
+                if (isD || isHuggingGlobal) return;
+                if (state === 'walk') {
+                    if (Math.random() < 0.8) {
+                        if (Math.random() < 0.15) dir = dir === -1 ? 1 : -1; pX += dir * 12;
+                        if (pX < 0) { pX = 0; dir = 1; } if (pX > window.innerWidth - 128) { pX = window.innerWidth - 128; dir = -1; }
+                        div.style.left = pX + 'px'; fIdx = (fIdx + 1) % wkL.length;
+                        if (dir === -1) { chk(wkL[fIdx], ()=>{img.src=wkL[fIdx];}, ()=>{img.src=sL;}); } else { chk(wkR[fIdx], ()=>{img.src=wkR[fIdx];}, ()=>{img.src=sR;}); }
+                        img.style.transform = 'none';
+                        if (idx === 0 && activePets.length === 2) {
+                            let dist = Math.abs(activePets[0].data.getX() - activePets[1].data.getX());
+                            if (dist < 100 && !activePets[0].data.getIsD() && !activePets[1].data.getIsD() && Math.random() < 0.4) triggerHugEvent();
                         }
                     } else {
-                        if (Math.random() < 0.25) { 
-                            if (Math.random() < 0.5) {
-                                petState = 'rest_sit'; breathCount = 0; safeSetImg(imgSitIn, imgStandL);
-                            } else {
-                                petState = 'rest_sleep'; breathCount = 0; safeSetImg(imgSleepDown, imgStandL);
-                            }
-                        } else {
-                            if (walkDirection === -1) { safeSetImg(imgStandL, imgStandL); } 
-                            else { safeSetImg(imgStandR, imgStandR); }
-                            petImg.style.transform = 'none';
-                        }
+                        if (Math.random() < 0.25) { if (Math.random() < 0.5) { state = 'rest_sit'; bCnt = 0; chk(sIn, ()=>{img.src=sIn;}, ()=>{img.src=sL;}); } else { state = 'rest_sleep'; bCnt = 0; chk(spD, ()=>{img.src=spD;}, ()=>{img.src=sL;}); } } 
+                        else { if (dir === -1) { chk(sL, ()=>{img.src=sL;}, ()=>{img.src=sL;}); } else { chk(sR, ()=>{img.src=sR;}, ()=>{img.src=sR;}); } img.style.transform = 'none'; }
                     }
                 }
-                // ====== 狀態 2：坐下休息 ======
-                else if (petState === 'rest_sit') {
-                    if (breathCount < maxBreaths * 2) {
-                        if (breathCount % 2 === 0) { safeSetImg(imgSitOut, imgStandL); } else { safeSetImg(imgSitIn, imgStandL); }
-                        breathCount++;
-                    } else { petState = 'get_up'; safeSetImg(imgStandUp, imgStandL); }
+                else if (state === 'rest_sit') {
+                    if (bCnt < 6) { if (bCnt % 2 === 0) { chk(sOut, ()=>{img.src=sOut;}, ()=>{img.src=sL;}); } else { chk(sIn, ()=>{img.src=sIn;}, ()=>{img.src=sL;}); } bCnt++; } 
+                    else { state = 'get_up'; chk(sUp, ()=>{img.src=sUp;}, ()=>{img.src=sL;}); }
                 }
-                // ====== 狀態 3：深度趴下睡覺 ======
-                else if (petState === 'rest_sleep') {
-                    if (breathCount === 0) {
-                        safeSetImg(imgSleepDown, imgStandL); 
-                        breathCount++;
-                    } else if (breathCount <= myMaxSleepBreaths) { // ✨ 這裡改成讀取各自獨立的睡眠長度了
-                        if (breathCount % 2 === 0) { safeSetImg(imgSleepOut, imgStandL); } else { safeSetImg(imgSleepIn, imgStandL); }
-                        breathCount++;
-                    } else { petState = 'wake_up'; safeSetImg(imgSleepUp, imgStandL); } 
+                else if (state === 'rest_sleep') {
+                    if (bCnt === 0) { chk(spD, ()=>{img.src=spD;}, ()=>{img.src=sL;}); bCnt++; } 
+                    else if (bCnt <= maxSB) { if (bCnt % 2 === 0) { chk(spOut, ()=>{img.src=spOut;}, ()=>{img.src=sL;}); } else { chk(spIn, ()=>{img.src=spIn;}, ()=>{img.src=sL;}); bCnt++; } 
+                    else { state = 'wake_up'; chk(spUp, ()=>{img.src=spUp;}, ()=>{img.src=sL;}); }
                 }
-                // ====== 狀態 4 & 5：醒來過渡 ======
-                else if (petState === 'get_up') {
-                    petState = 'walk'; if (walkDirection === -1) { petImg.src = imgStandL; } else { petImg.src = imgStandR; }
-                }
-                else if (petState === 'wake_up') {
-                    petState = 'walk'; if (walkDirection === -1) { petImg.src = imgStandL; } else { petImg.src = imgStandR; }
-                }
+                else if (state === 'get_up' || state === 'wake_up') { state = 'walk'; img.src = (dir === -1) ? sL : sR; }
             }, 400);
 
-            function safeSetImg(targetSrc, backupSrc) {
-                checkImageExists(targetSrc, () => { petImg.src = targetSrc; }, () => { petImg.src = backupSrc; });
-            }
-
-            petImg.addEventListener('mousedown', (e) => {
-                if (isHuggingGlobal) return; 
-                isDragging = true; petState = 'walk';
-                checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { petImg.src = walkDirection === -1 ? `${folderName}/shime3.png` : `${folderName}/shime3_r.png`; });
-                startX = e.clientX - petX; startY = e.clientY - petY;
-                spawnHeart(container, folderName);
+            img.addEventListener('mousedown', (e) => {
+                if (isHuggingGlobal) return; isD = true; state = 'walk';
+                chk(dg, ()=>{img.src=dg;}, ()=>{img.src=(dir===-1?wkL[1]:wkR[1]);}); sX = e.clientX - pX; sY = e.clientY - pY; spH(div, f);
             });
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging) {
-                    petX = e.clientX - startX; petY = e.clientY - startY;
-                    container.style.left = petX + 'px'; container.style.top = petY + 'px';
-                }
-            });
-            document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; petImg.src = imgStandL; } });
+            document.addEventListener('mousemove', (e) => { if (isD) { pX = e.clientX - sX; pY = e.clientY - sY; div.style.left = pX + 'px'; div.style.top = pY + 'px'; } });
+            document.addEventListener('mouseup', () => { if (isD) { isD = false; img.src = sL; } });
         });
-        // 🎬 全自動雙向擁抱導演系統（內含鎖死大位移修復）
+
         function triggerHugEvent() {
-            isHuggingGlobal = true;
-            const firstPet = activePets.slice(0, 1).pop();
-            const secondPet = activePets.slice(1, 2).pop();
-            let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 + 0; 
-            let midY = (firstPet.data.getY() + secondPet.data.getY()) / 2;
-            
-            firstPet.data.setHide(true);
-            secondPet.data.setHide(true);
-            
-            hugStage.style.left = midX + 'px'; hugStage.style.top = midY + 'px';
-            hugStage.style.display = 'block';
-            
-            const prefix = Math.random() < 0.5 ? '' : 'r_';
-            
-            setTimeout(() => { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
-            setTimeout(() => { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
-            setTimeout(() => { 
-                hugImg.src = prefix + 'meet3_hug.png';                             
-                spawnHeart(hugStage, 'Takumi');                            
-                spawnHeart(hugStage, 'Aotsuki');
-            }, 2200);
-            setTimeout(() => { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
-            setTimeout(() => { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
-            
+            isHuggingGlobal = true; const p1 = activePets[0], p2 = activePets[1];
+            let midX = (p1.data.getX() + p2.data.getX()) / 2 + 0, midY = (p1.data.getY() + p2.data.getY()) / 2;
+            p1.data.setH(true); p2.data.setH(true); hugStage.style.left = midX + 'px'; hugStage.style.top = midY + 'px'; hugStage.style.display = 'block';
+            const pf = Math.random() < 0.5 ? '' : 'r_';
+            setTimeout(() => { hugImg.src = pf + 'meet1_face.png'; }, 0);
+            setTimeout(() => { hugImg.src = pf + 'meet2_walk.png'; }, 1000);
+            setTimeout(() => { hugImg.src = pf + 'meet3_hug.png'; spH(hugStage, 'Takumi'); spH(hugStage, 'Aotsuki'); }, 2200);
+            setTimeout(() => { hugImg.src = pf + 'meet4_separate.png'; }, 4200);
+            setTimeout(() => { hugImg.src = pf + 'meet5_shy.png'; }, 5400);
             setTimeout(() => {
-                hugStage.style.display = 'none';
-                firstPet.data.setX(midX - 40);
-                secondPet.data.setX(midX + 160);
-                firstPet.data.setY(midY);
-                secondPet.data.setY(midY);
-                firstPet.data.resetState();
-                secondPet.data.resetState();
-                firstPet.data.setHide(false);
-                secondPet.data.setHide(false);
-                isHuggingGlobal = false; 
+                hugStage.style.display = 'none'; p1.data.setX(midX - 40); p2.data.setX(midX + 160); p1.data.setY(midY); p2.data.setY(midY);
+                p1.data.rst(); p2.data.rst(); p1.data.setH(false); p2.data.setH(false); isHuggingGlobal = false;
             }, 7000);
         }
-
-        function checkImageExists(url, success, error) {
-            const img = new Image(); img.onload = success; img.onerror = error; img.src = url;
-        }
-
-        // 特效功能（已完美綁定 40px 頭頂位置）
-        function spawnHeart(parentContainer, folder) {
-            const heart = document.createElement('img');
-            heart.src = `${folder}/heart.png`; heart.className = 'heart-effect';
-            heart.style.left = (Math.random() * 160 + 40) + 'px'; heart.style.top = '40px'; 
-            checkImageExists(heart.src, () => {
-                parentContainer.appendChild(heart);
-                setTimeout(() => { heart.remove(); }, 1200);
-            }, () => {});
-        }
+        function chk(u, s, e) { const i = new Image(); i.onload = s; i.onerror = e; i.src = u; }
+        function spH(p, f) { const h = document.createElement('img'); h.src = `${f}/heart.png`; h.className = 'heart-effect'; h.style.left = (Math.random() * 160 + 40) + 'px'; h.style.top = '40px'; chk(h.src, ()=>{p.appendChild(h);setTimeout(()=>{h.remove();},1200);}, ()=>{}); }
     </script>
 </body>
 </html>
