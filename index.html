@@ -83,9 +83,15 @@
                     } else { pState0 = 'get_up'; img0.src = 'Takumi/stand_up.png'; }
                 }
                 else if (pState0 === 'rest_sleep') {
-                    if (bCnt0 === 0) { img0.src = 'Takumi/sleep_down.png'; bCnt0++; } 
-                    else if (bCnt0 <= 12) { img0.src = (bCnt0 % 2 === 0) ? 'Takumi/sleep_out.png' : 'Takumi/sleep_in.png'; bCnt0++; } // Takumi 睡 12 下
-                    else { pState0 = 'wake_up'; img0.src = 'Takumi/sleep_up.png'; }
+                    // ✨ 自動判斷是左睡姿還是右睡姿
+                    let spD0 = (dir0 === -1) ? 'Takumi/sleep_down.png' : 'Takumi/sleep_down_r.png';
+                    let spIn0 = (dir0 === -1) ? 'Takumi/sleep_in.png' : 'Takumi/sleep_in_r.png';
+                    let spOut0 = (dir0 === -1) ? 'Takumi/sleep_out.png' : 'Takumi/sleep_out_r.png';
+                    let spUp0 = (dir0 === -1) ? 'Takumi/sleep_up.png' : 'Takumi/sleep_up_r.png';
+
+                    if (bCnt0 === 0) { img0.src = spD0; bCnt0++; } 
+                    else if (bCnt0 <= 12) { img0.src = (bCnt0 % 2 === 0) ? spOut0 : spIn0; bCnt0++; } 
+                    else { pState0 = 'wake_up'; img0.src = spUp0; }
                 }
                 else if (pState0 === 'get_up' || pState0 === 'wake_up') { pState0 = 'walk'; img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png'; }
             }
@@ -116,9 +122,15 @@
                     } else { pState1 = 'get_up'; img1.src = 'Aotsuki/stand_up.png'; }
                 }
                 else if (pState1 === 'rest_sleep') {
-                    if (bCnt1 === 0) { img1.src = 'Aotsuki/sleep_down.png'; bCnt1++; } 
-                    else if (bCnt1 <= 6) { img1.src = (bCnt1 % 2 === 0) ? 'Aotsuki/sleep_out.png' : 'Aotsuki/sleep_in.png'; bCnt1++; } // Aotsuki 睡 6 下
-                    else { pState1 = 'wake_up'; img1.src = 'Aotsuki/sleep_up.png'; }
+                    // ✨ 自動判斷是左睡姿還是右睡姿
+                    let spD1 = (dir1 === -1) ? 'Aotsuki/sleep_down.png' : 'Aotsuki/sleep_down_r.png';
+                    let spIn1 = (dir1 === -1) ? 'Aotsuki/sleep_in.png' : 'Aotsuki/sleep_in_r.png';
+                    let spOut1 = (dir1 === -1) ? 'Aotsuki/sleep_out.png' : 'Aotsuki/sleep_out_r.png';
+                    let spUp1 = (dir1 === -1) ? 'Aotsuki/sleep_up.png' : 'Aotsuki/sleep_up_r.png';
+
+                    if (bCnt1 === 0) { img1.src = spD1; bCnt1++; } 
+                    else if (bCnt1 <= 6) { img1.src = (bCnt1 % 2 === 0) ? spOut1 : spIn1; bCnt1++; } 
+                    else { pState1 = 'wake_up'; img1.src = spUp1; }
                 }
                 else if (pState1 === 'get_up' || pState1 === 'wake_up') { pState1 = 'walk'; img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; }
             }
