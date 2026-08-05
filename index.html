@@ -58,6 +58,8 @@
             let walkFramesR = [folderName + '/shime2_r.png', folderName + '/shime3_r.png'];
             let imgSitIn = folderName + '/sit_in.png';
             let imgSitOut = folderName + '/sit_out.png';
+            let imgSitInR = folderName + '/sit_in_r.png';   // ✨ 新增這行
+            let imgSitOutR = folderName + '/sit_out_r.png'; // ✨ 新增這行
             let imgStandUp = folderName + '/stand_up.png';
             let imgSleepDown = folderName + '/sleep_down.png';
             let imgSleepIn = folderName + '/sleep_in.png';
@@ -124,7 +126,11 @@
                     } else {
                         if (Math.random() < 0.25) { 
                             if (Math.random() < 0.5) {
-                                petState = 'rest_sit'; breathCount = 0; checkImageExists(imgSitIn, function() { petImg.src = imgSitIn; }, function() { petImg.src = imgStandL; });
+                                petState = 'rest_sit'; breathCount = 0; 
+                                // ✨ 依據當下方向，決定坐下時是播放左邊還是右邊的吸氣圖
+                                let startSitImg = (walkDirection === -1) ? imgSitIn : imgSitInR;
+                                let startBackupImg = (walkDirection === -1) ? imgStandL : imgStandR;
+                                checkImageExists(startSitImg, function() { petImg.src = startSitImg; }, function() { petImg.src = startBackupImg; });
                             } else {
                                 petState = 'rest_sleep'; breathCount = 0; checkImageExists(imgSleepDown, function() { petImg.src = imgSleepDown; }, function() { petImg.src = imgStandL; });
                             }
@@ -136,13 +142,18 @@
                 }
                 else if (petState === 'rest_sit') {
                     if (breathCount < maxBreaths * 2) {
+                        // ✨ 根據走路方向鎖定是左坐姿還是右坐姿
+                        let currentSitIn = (walkDirection === -1) ? imgSitIn : imgSitInR;
+                        let currentSitOut = (walkDirection === -1) ? imgSitOut : imgSitOutR;
+                        let currentBackup = (walkDirection === -1) ? imgStandL : imgStandR;
+
                         if (breathCount % 2 === 0) {
-                            checkImageExists(imgSitOut, function() { petImg.src = imgSitOut; }, function() { petImg.src = imgStandL; });
-                        } else {
-                            checkImageExists(imgSitIn, function() { petImg.src = imgSitIn; }, function() { petImg.src = imgStandL; });
-                        }
-                        breathCount++;
-                    } else {
+                            checkImageExists(currentSitOut, function() { petImg.src = currentSitOut; }, function() { petImg.src = currentBackup; });
+                          } else {
+                            checkImageExists(currentSitIn, function() { petImg.src = currentSitIn; }, function() { petImg.src = currentBackup; });
+                          }
+                            breathCount++;
+                     } else {
                         petState = 'get_up';
                         checkImageExists(imgStandUp, function() { petImg.src = imgStandUp; }, function() { petImg.src = imgStandL; });
                     }
