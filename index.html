@@ -2,13 +2,12 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室</title>
+    <title>雙人桌寵動態實驗室 - Takumi 造型</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         #pet-container { position: absolute; width: 128px; height: 128px; }
-        #pet { width: 100%; height: 100%; cursor: grab; user-select: none; }
+        #pet { width: 100%; height: 100%; cursor: grab; user-select: none; transition: transform 0.1s; }
         #pet:active { cursor: grabbing; }
-        /* 愛心飄動的動畫效果 */
         .heart-effect {
             position: absolute; width: 32px; height: 32px;
             pointer-events: none; animation: floatUp 1.2s ease-out forwards;
@@ -22,61 +21,55 @@
 </head>
 <body>
     <div id="pet-container">
-        <!-- 預設載入 shime1.png -->
-        <img id="pet" src="Eiden/shime1.png" alt="桌寵">
+        <img id="pet" src="" alt="桌寵">
     </div>
 
     <script>
+        // ==========================================
+        // 🎨 繪師專用設定區：資料夾名稱已更新為 Takumi
+        const folderName = 'Takumi'; 
+        // ==========================================
+
         const container = document.getElementById('pet-container');
         const pet = document.getElementById('pet');
         let isDragging = false, startX, startY, petX = 150, petY = 150;
         
-        // 走路動畫影格與方向控制
-        let walkFrames = ['Eiden/shime2.png', 'Eiden/shime3.png'];
+        // 自動動態組合路徑，對齊你上傳的 shime1, shime2, shime3
+        let imgStand = `${folderName}/shime1.png`;
+        let imgDrag = `${folderName}/shime3.png`;
+        let walkFrames = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
+        
         let currentFrameIndex = 0;
-        let walkDirection = 1; // 1 代表朝右，-1 代表朝左
+        let walkDirection = 1;
 
+        // 預設載入發呆圖
+        pet.src = imgStand;
         container.style.left = petX + 'px'; container.style.top = petY + 'px';
 
-        // 核心動態定時器（每 0.4 秒執行一次，控制走路踏步）
+        // 核心動態定時器
         setInterval(() => {
             if (!isDragging) {
-                // 隨機決定要站著還是走路 (70% 機率走路)
                 if (Math.random() < 0.7) {
-                    // 隨機改變左右方向
-                    if (Math.random() < 0.15) {
-                        walkDirection = walkDirection === 1 ? -1 : 1;
-                    }
-                    
-                    // 移動位置
+                    if (Math.random() < 0.15) { walkDirection = walkDirection === 1 ? -1 : 1; }
                     petX += walkDirection * 15;
-                    
-                    // 防止撞牆，撞到邊界就回頭
                     if (petX < 0) { petX = 0; walkDirection = 1; }
                     if (petX > window.innerWidth - 128) { petX = window.innerWidth - 128; walkDirection = -1; }
-                    
                     container.style.left = petX + 'px';
                     
-                    // 切換走路圖檔（讓腳動起來）
                     currentFrameIndex = (currentFrameIndex + 1) % walkFrames.length;
                     pet.src = walkFrames[currentFrameIndex];
-                    
-                    // 利用程式碼直接鏡像翻轉圖片，你完全不用自己畫左邊跟右邊！
                     pet.style.transform = walkDirection === 1 ? 'scaleX(1)' : 'scaleX(-1)';
-                    
-                    // 走路時隨機噴愛心
                     if (Math.random() < 0.2) { spawnHeart(); }
                 } else {
-                    // 站立發呆狀態
-                    pet.src = 'shime1.png';
+                    pet.src = imgStand;
                 }
             }
         }, 400);
 
-        // 產生愛心特效
         function spawnHeart() {
             const heart = document.createElement('img');
-            heart.src = 'heart.png';
+            // 這裡會自動去抓 Takumi 資料夾裡的 heart.png
+            heart.src = `${folderName}/heart.png`; 
             heart.className = 'heart-effect';
             heart.style.left = (45 + (Math.random() - 0.5) * 30) + 'px';
             heart.style.top = '-10px';
@@ -84,10 +77,10 @@
             setTimeout(() => { heart.remove(); }, 1200);
         }
 
-        // 滑鼠拖曳互動（抓起時強行播放 shime5.png 假裝是雙腳懸空亂踢）
+        // 滑鼠互動
         pet.addEventListener('mousedown', (e) => {
             isDragging = true; 
-            pet.src = 'Eiden/shime3.png';
+            pet.src = imgDrag; 
             startX = e.clientX - petX; startY = e.clientY - petY;
             spawnHeart();
         });
@@ -98,10 +91,7 @@
             }
         });
         document.addEventListener('mouseup', () => {
-            if (isDragging) { 
-                isDragging = false; 
-                pet.src = 'Eiden/shime1.png';
-            }
+            if (isDragging) { isDragging = false; pet.src = imgStand; }
         });
     </script>
 </body>
