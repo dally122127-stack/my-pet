@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人獨立桌寵實驗室 - 專屬提起動態版</title>
+    <title>雙人桌寵動態實驗室 - 呼吸休息升級版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; }
@@ -23,7 +23,7 @@
 
     <script>
         // ==========================================
-        // 🎨 繪師專用設定區
+        // 🎨 繪師專用設定區：設定要上場的角色
         const petsData = [
             { folder: 'Takumi' },
             { folder: 'Aotsuki' }
@@ -42,11 +42,15 @@
             container.appendChild(petImg);
             document.body.appendChild(container);
 
-            // 🔍 這裡更新了：讓程式去各自的資料夾抓 drag.png 囉！
+            // 🤖 圖片路徑自動組合（包含你新增的 sit_in, sit_out, stand_up）
             let imgStand = `${folderName}/shime1.png`;
             let imgDrag = `${folderName}/drag.png`; 
             let walkFrames = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
+            let imgSitIn = `${folderName}/sit_in.png`;
+            let imgSitOut = `${folderName}/sit_out.png`;
+            let imgStandUp = `${folderName}/stand_up.png`;
             
+            // 📊 狀態變數管理
             let isDragging = false;
             let startX, startY;
             let petX = 100 + (index * 150); 
@@ -54,39 +58,82 @@
             let currentFrameIndex = 0;
             let walkDirection = 1;
 
+            // ⏳ 新增：呼吸與休息控制變數
+            let petState = 'walk'; // 三種狀態: 'walk'（散步）, 'rest'（休息呼吸）, 'get_up'（準備站起）
+            let breathCount = 0;   // 記錄已經呼吸了幾次
+            const maxBreaths = 3;  // ⏳ 繪師自訂：吸氣吐氣要重複幾次？（3次代表吸吐吸吐吸吐，共6下後站起來）
+
             petImg.src = imgStand;
             container.style.left = petX + 'px';
             container.style.top = petY + 'px';
 
+            // 核心動態定時器（每 0.4 秒換一次動作）
             setInterval(() => {
-                if (!isDragging) {
-                    if (Math.random() < 0.7) {
+                if (isDragging) return; // 被抓起來時暫停所有定時器動作
+
+                // ====== 狀態 1：正常走路與發呆 ======
+                if (petState === 'walk') {
+                    if (Math.random() < 0.8) { // 80% 機率在走動或踏步
                         if (Math.random() < 0.15) { walkDirection = walkDirection === 1 ? -1 : 1; }
-                        petX += walkDirection * 15;
+                        petX += walkDirection * 12;
                         if (petX < 0) { petX = 0; walkDirection = 1; }
                         if (petX > window.innerWidth - 128) { petX = window.innerWidth - 128; walkDirection = -1; }
                         container.style.left = petX + 'px';
                         
                         currentFrameIndex = (currentFrameIndex + 1) % walkFrames.length;
-                        const nextSrc = walkFrames[currentFrameIndex];
-                        
-                        checkImageExists(nextSrc, () => {
-                            petImg.src = nextSrc;
-                        }, () => {
-                            petImg.src = imgStand;
-                        });
-
+                        safeSetImg(walkFrames[currentFrameIndex]);
                         petImg.style.transform = walkDirection === 1 ? 'scaleX(-1)' : 'scaleX(1)';
-                        if (Math.random() < 0.2) { spawnHeart(container, folderName); }
+                        if (Math.random() < 0.1) { spawnHeart(container, folderName); }
                     } else {
-                        petImg.src = imgStand;
+                        // 有微小機率突然決定「坐下來休息」！
+                        if (Math.random() < 0.2) {
+                            petState = 'rest';
+                            breathCount = 0;
+                            safeSetImg(imgSitIn); // 從吸氣動作開始休息
+                        } else {
+                            safeSetImg(imgStand); // 普通原地發呆
+                        }
                     }
                 }
+                
+                // ====== 狀態 2：坐下並規律呼吸 ======
+                else if (petState === 'rest') {
+                    // 利用 breathCount 的單雙數來切換吸氣與吐氣
+                    if (breathCount < maxBreaths * 2) {
+                        if (breathCount % 2 === 0) {
+                            safeSetImg(imgSitOut); // 換吐氣
+                        } else {
+                            safeSetImg(imgSitIn);  // 換吸氣
+                        }
+                        breathCount++;
+                    } else {
+                        // 呼吸次數滿了，進入「準備站起」狀態
+                        petState = 'get_up';
+                        safeSetImg(imgStandUp);
+                    }
+                }
+                
+                // ====== 狀態 3：播放站起來的圖片，然後恢復走路 ======
+                else if (petState === 'get_up') {
+                    petState = 'walk';
+                    safeSetImg(imgStand); // 回到初始站立，下一次循環就會繼續走路
+                }
+
             }, 400);
 
-            // 滑鼠互動：提起時會換成各自資料夾的 drag.png
+            // 確保圖片存在，不存在就用發呆圖防破圖的萬用功能
+            function safeSetImg(targetSrc) {
+                checkImageExists(targetSrc, () => {
+                    petImg.src = targetSrc;
+                }, () => {
+                    petImg.src = imgStand;
+                });
+            }
+
+            // 滑鼠互動（被抓起來時會強行打斷休息狀態，放開後重新開始走路）
             petImg.addEventListener('mousedown', (e) => {
                 isDragging = true; 
+                petState = 'walk'; // 被抓走就忘記休息，放開後重新計算
                 checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { petImg.src = `${folderName}/shime3.png`; });
                 startX = e.clientX - petX; startY = e.clientY - petY;
                 spawnHeart(container, folderName);
@@ -117,7 +164,6 @@
             heart.className = 'heart-effect';
             heart.style.left = (45 + (Math.random() - 0.5) * 30) + 'px';
             heart.style.top = '-10px';
-            
             checkImageExists(heart.src, () => {
                 parentContainer.appendChild(heart);
                 setTimeout(() => { heart.remove(); }, 1200);
