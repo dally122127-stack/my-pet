@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 深度熟睡版</title>
+    <title>雙人桌寵動態實驗室 - 個性化睡眠版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
@@ -27,7 +27,14 @@
     </div>
 
     <script>
-        const petsData = [{ folder: 'Takumi' }, { folder: 'Aotsuki' }];
+        // ==========================================
+        // 🎨 繪師專用設定區：在這裡可以單獨決定每個人的睡眠呼吸次數囉！
+        const petsData = [
+            { folder: 'Takumi', sleepBreaths: 12 },  // ✨ Takumi 睡很久（呼吸12下，約5秒）
+            { folder: 'Aotsuki', sleepBreaths: 6 }   // ✨ Aotsuki 保持原樣（呼吸6下，約2.5秒）
+        ];
+        // ==========================================
+
         const activePets = []; 
         const hugStage = document.getElementById('hug-stage');
         const hugImg = document.getElementById('hug-img');
@@ -35,6 +42,8 @@
 
         petsData.forEach((petConfig, index) => {
             const folderName = petConfig.folder;
+            const myMaxSleepBreaths = petConfig.sleepBreaths; // 🤖 自動讀取每個人自己的睡眠長度
+
             const container = document.createElement('div');
             container.className = 'pet-container';
             const petImg = document.createElement('img');
@@ -62,8 +71,7 @@
             let currentFrameIndex = 0; let walkDirection = index === 0 ? 1 : -1;
             
             let petState = 'walk'; let breathCount = 0; 
-            const maxBreaths = 3;       // 坐下喝茶的吸吐次數
-            const maxSleepBreaths = 6;  // 😴 這裡鎖定了：睡覺至少要呼吸 6 下（吸吐吸吐吸吐共3大循環）！
+            const maxBreaths = 3; // 坐下喝茶的吸吐次數
 
             petImg.src = imgStandL;
             container.style.left = petX + 'px'; container.style.top = petY + 'px';
@@ -129,7 +137,7 @@
                     if (breathCount === 0) {
                         safeSetImg(imgSleepDown, imgStandL); 
                         breathCount++;
-                    } else if (breathCount <= maxSleepBreaths) { // ✨ 這裡更換成了長睡眠控制變數
+                    } else if (breathCount <= myMaxSleepBreaths) { // ✨ 這裡改成讀取各自獨立的睡眠長度了
                         if (breathCount % 2 === 0) { safeSetImg(imgSleepOut, imgStandL); } else { safeSetImg(imgSleepIn, imgStandL); }
                         breathCount++;
                     } else { petState = 'wake_up'; safeSetImg(imgSleepUp, imgStandL); } 
@@ -138,7 +146,6 @@
                 else if (petState === 'get_up') {
                     petState = 'walk'; if (walkDirection === -1) { petImg.src = imgStandL; } else { petImg.src = imgStandR; }
                 }
-                // ====== 狀態 5 ======
                 else if (petState === 'wake_up') {
                     petState = 'walk'; if (walkDirection === -1) { petImg.src = imgStandL; } else { petImg.src = imgStandR; }
                 }
@@ -163,7 +170,7 @@
             });
             document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; petImg.src = imgStandL; } });
         });
-        // 🎬 全自動雙向擁抱導演系統
+        // 🎬 全自動雙向擁抱導演系統（內含鎖死大位移修復）
         function triggerHugEvent() {
             isHuggingGlobal = true;
             const firstPet = activePets.slice(0, 1).pop();
@@ -188,34 +195,26 @@
             }, 2200);
             setTimeout(() => { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
             setTimeout(() => { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
-   
             
-            // 互動結束，解散！
             setTimeout(() => {
                 hugStage.style.display = 'none';
-
-                // ✨ 核心修改：解散時，強行將後台跑偏的隱形座標，拉回剛剛擁抱的真實中間點！
                 firstPet.data.setX(midX - 40);
                 secondPet.data.setX(midX + 160);
-
-                // ✨ 新增這兩行：同步垂直 Y 軸座標，防止兩人在後台走一走上下錯位
                 firstPet.data.setY(midY);
                 secondPet.data.setY(midY);
-
                 firstPet.data.resetState();
                 secondPet.data.resetState();
                 firstPet.data.setHide(false);
                 secondPet.data.setHide(false);
-
                 isHuggingGlobal = false; 
             }, 7000);
-
         }
 
         function checkImageExists(url, success, error) {
             const img = new Image(); img.onload = success; img.onerror = error; img.src = url;
         }
 
+        // 特效功能（已完美綁定 40px 頭頂位置）
         function spawnHeart(parentContainer, folder) {
             const heart = document.createElement('img');
             heart.src = `${folder}/heart.png`; heart.className = 'heart-effect';
