@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 呼吸休息升級版</title>
+    <title>雙人桌寵動態實驗室 - 左右手繪不對稱升級版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; }
@@ -23,7 +23,7 @@
 
     <script>
         // ==========================================
-        // 🎨 繪師專用設定區：設定要上場的角色
+        // 🎨 繪師專用設定區
         const petsData = [
             { folder: 'Takumi' },
             { folder: 'Aotsuki' }
@@ -42,99 +42,123 @@
             container.appendChild(petImg);
             document.body.appendChild(container);
 
-            // 🤖 圖片路徑自動組合（包含你新增的 sit_in, sit_out, stand_up）
-            let imgStand = `${folderName}/shime1.png`;
+            // 📂 圖片路徑規劃（拆分為左側 L 與右側 R 兩組）
+            let imgStandL = `${folderName}/shime1.png`;
+            let imgStandR = `${folderName}/shime1_r.png`;
+            
             let imgDrag = `${folderName}/drag.png`; 
-            let walkFrames = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
+            
+            let walkFramesL = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
+            let walkFramesR = [`${folderName}/shime2_r.png`, `${folderName}/shime3_r.png`];
+            
             let imgSitIn = `${folderName}/sit_in.png`;
             let imgSitOut = `${folderName}/sit_out.png`;
             let imgStandUp = `${folderName}/stand_up.png`;
             
-            // 📊 狀態變數管理
+            // 📊 變數控制
             let isDragging = false;
             let startX, startY;
             let petX = 100 + (index * 150); 
             let petY = 150 + (index * 50);
             let currentFrameIndex = 0;
-            let walkDirection = 1;
+            
+            // 🧭 方向控制（-1 代表往左走，1 代表往右走。因為你原本的圖是朝左，所以預設為 -1）
+            let walkDirection = -1; 
 
-            // ⏳ 新增：呼吸與休息控制變數
-            let petState = 'walk'; // 三種狀態: 'walk'（散步）, 'rest'（休息呼吸）, 'get_up'（準備站起）
-            let breathCount = 0;   // 記錄已經呼吸了幾次
-            const maxBreaths = 3;  // ⏳ 繪師自訂：吸氣吐氣要重複幾次？（3次代表吸吐吸吐吸吐，共6下後站起來）
+            let petState = 'walk'; 
+            let breathCount = 0;   
+            const maxBreaths = 3;  
 
-            petImg.src = imgStand;
+            // 預設朝左發呆
+            petImg.src = imgStandL;
             container.style.left = petX + 'px';
             container.style.top = petY + 'px';
 
-            // 核心動態定時器（每 0.4 秒換一次動作）
+            // 核心動態定時器
             setInterval(() => {
-                if (isDragging) return; // 被抓起來時暫停所有定時器動作
+                if (isDragging) return;
 
-                // ====== 狀態 1：正常走路與發呆 ======
+                // ====== 狀態 1：正常散步與發呆 ======
                 if (petState === 'walk') {
-                    if (Math.random() < 0.8) { // 80% 機率在走動或踏步
-                        if (Math.random() < 0.15) { walkDirection = walkDirection === 1 ? -1 : 1; }
+                    if (Math.random() < 0.8) { 
+                        // 隨機轉向
+                        if (Math.random() < 0.15) { walkDirection = walkDirection === -1 ? 1 : -1; }
+                        
                         petX += walkDirection * 12;
                         if (petX < 0) { petX = 0; walkDirection = 1; }
                         if (petX > window.innerWidth - 128) { petX = window.innerWidth - 128; walkDirection = -1; }
                         container.style.left = petX + 'px';
                         
-                        currentFrameIndex = (currentFrameIndex + 1) % walkFrames.length;
-                        safeSetImg(walkFrames[currentFrameIndex]);
-                        petImg.style.transform = walkDirection === 1 ? 'scaleX(-1)' : 'scaleX(1)';
+                        currentFrameIndex = (currentFrameIndex + 1) % walkFramesL.length;
+                        
+                        // 🎯 核心修改：根據方向直接更換圖檔，並徹底拔除 scaleX 鏡像程式碼！
+                        if (walkDirection === -1) {
+                            // 往左走，讀取左邊專屬圖
+                            safeSetImg(walkFramesL[currentFrameIndex], imgStandL);
+                        } else {
+                            // 往右走，讀取右邊專屬圖
+                            safeSetImg(walkFramesR[currentFrameIndex], imgStandR);
+                        }
+                        
+                        // 徹底移除圖片翻轉，讓圖保持你畫的原汁原味
+                        petImg.style.transform = 'none'; 
+                        
                         if (Math.random() < 0.1) { spawnHeart(container, folderName); }
                     } else {
-                        // 有微小機率突然決定「坐下來休息」！
                         if (Math.random() < 0.2) {
                             petState = 'rest';
                             breathCount = 0;
-                            safeSetImg(imgSitIn); // 從吸氣動作開始休息
+                            safeSetImg(imgSitIn, imgStandL);
                         } else {
-                            safeSetImg(imgStand); // 普通原地發呆
+                            // 發呆時也要分左右看
+                            if (walkDirection === -1) {
+                                safeSetImg(imgStandL, imgStandL);
+                            } else {
+                                safeSetImg(imgStandR, imgStandR);
+                            }
+                            petImg.style.transform = 'none';
                         }
                     }
                 }
                 
-                // ====== 狀態 2：坐下並規律呼吸 ======
+                // ====== 狀態 2：坐下呼吸 ======
                 else if (petState === 'rest') {
-                    // 利用 breathCount 的單雙數來切換吸氣與吐氣
                     if (breathCount < maxBreaths * 2) {
-                        if (breathCount % 2 === 0) {
-                            safeSetImg(imgSitOut); // 換吐氣
-                        } else {
-                            safeSetImg(imgSitIn);  // 換吸氣
-                        }
+                        if (breathCount % 2 === 0) { safeSetImg(imgSitOut, imgStandL); } 
+                        else { safeSetImg(imgSitIn, imgStandL); }
                         breathCount++;
                     } else {
-                        // 呼吸次數滿了，進入「準備站起」狀態
                         petState = 'get_up';
-                        safeSetImg(imgStandUp);
+                        safeSetImg(imgStandUp, imgStandL);
                     }
                 }
                 
-                // ====== 狀態 3：播放站起來的圖片，然後恢復走路 ======
+                // ====== 狀態 3：站起過渡 ======
                 else if (petState === 'get_up') {
                     petState = 'walk';
-                    safeSetImg(imgStand); // 回到初始站立，下一次循環就會繼續走路
+                    if (walkDirection === -1) { petImg.src = imgStandL; } 
+                    else { petImg.src = imgStandR; }
                 }
 
             }, 400);
 
-            // 確保圖片存在，不存在就用發呆圖防破圖的萬用功能
-            function safeSetImg(targetSrc) {
+            // 升級版安全防破圖功能（多傳入一個後備圖片路徑）
+            function safeSetImg(targetSrc, backupSrc) {
                 checkImageExists(targetSrc, () => {
                     petImg.src = targetSrc;
                 }, () => {
-                    petImg.src = imgStand;
+                    petImg.src = backupSrc; // 如果你還沒上傳帶有 _r 的右側圖，會自動用左側圖頂替
                 });
             }
 
-            // 滑鼠互動（被抓起來時會強行打斷休息狀態，放開後重新開始走路）
+            // 滑鼠互動
             petImg.addEventListener('mousedown', (e) => {
                 isDragging = true; 
-                petState = 'walk'; // 被抓走就忘記休息，放開後重新計算
-                checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { petImg.src = `${folderName}/shime3.png`; });
+                petState = 'walk';
+                checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { 
+                    // 抓起來時如果沒有 drag.png，就看他原本面向哪裡，用哪一邊的 shime3 頂替
+                    petImg.src = walkDirection === -1 ? `${folderName}/shime3.png` : `${folderName}/shime3_r.png`; 
+                });
                 startX = e.clientX - petX; startY = e.clientY - petY;
                 spawnHeart(container, folderName);
             });
@@ -147,7 +171,10 @@
             });
 
             document.addEventListener('mouseup', () => {
-                if (isDragging) { isDragging = false; petImg.src = imgStand; }
+                if (isDragging) { 
+                    isDragging = false; 
+                    petImg.src = walkDirection === -1 ? imgStandL : imgStandR; 
+                }
             });
         });
 
