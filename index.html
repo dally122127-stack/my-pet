@@ -105,7 +105,7 @@
                         
                         if (Math.random() < 0.1) { spawnHeart(container, folderName); }
                         
-                        // ⏱️ 擁抱觸發雷達：兩人在散步時，如果靠得非常近且滿足隨機條件，就觸發擁抱
+                        // ⏱️ 擁抱觸發雷達：【此處已修正為正確的陣列索引 [0] 與 [1]】
                         if (index === 0 && activePets.length === 2) {
                             let dist = Math.abs(activePets[0].data.getX() - activePets[1].data.getX());
                             if (dist < 100 && !activePets[0].data.getIsDragging() && !activePets[1].data.getIsDragging() && Math.random() < 0.4) {
@@ -162,7 +162,7 @@
         function triggerHugEvent() {
             isHuggingGlobal = true;
             
-            // 計算兩個角色的中間點，把合體舞台架在那裡
+            // 計算兩個角色的中間點，把合體舞台架在那裡【此處亦同步修正完成】
             let midX = (activePets[0].data.getX() + activePets[1].data.getX()) / 2 - 64;
             let midY = (activePets[0].data.getY() + activePets[1].data.getY()) / 2;
             
@@ -185,7 +185,7 @@
                 spawnHeart(hugStage, 'Aotsuki');
             }, 2200);
             
-            setTimeout(() => { hugImg.src = 'meet4_separate.png'; }, 4200); // 4. 分開 (這裡已修復錯誤的中括號)
+            setTimeout(() => { hugImg.src = 'meet4_separate.png'; }, 4200); // 4. 分開
             setTimeout(() => { hugImg.src = 'meet5_shy.png'; }, 5400);     // 5. 害羞
             
             // 互動結束，解散！
