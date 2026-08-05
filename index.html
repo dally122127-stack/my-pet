@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>我的自製桌寵</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: transparent; }
+        #pet {
+            position: absolute; width: 128px; height: 128px;
+            cursor: grab; user-select: none; transition: transform 0.1s;
+        }
+        #pet:active { cursor: grabbing; }
+    </style>
+</head>
+<body>
+    <img id="pet" src="pet_stand.png" alt="桌寵">
+    <script>
+        const pet = document.getElementById('pet');
+        let isDragging = false, startX, startY, petX = 100, petY = 100;
+
+        // 初始化位置
+        pet.style.left = petX + 'px'; pet.style.top = petY + 'px';
+
+        // 隨機走路機制
+        setInterval(() => {
+            if (!isDragging) {
+                petX += (Math.random() - 0.5) * 40;
+                petY += (Math.random() - 0.5) * 40;
+                // 防止跑出螢幕外
+                petX = Math.max(0, Math.min(window.innerWidth - 128, petX));
+                petY = Math.max(0, Math.min(window.innerHeight - 128, petY));
+                pet.style.left = petX + 'px'; pet.style.top = petY + 'px';
+            }
+        }, 2000);
+
+        // 滑鼠拖曳互動
+        pet.addEventListener('mousedown', (e) => {
+            isDragging = true; pet.src = 'pet_drag.png';
+            startX = e.clientX - petX; startY = e.clientY - petY;
+        });
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                petX = e.clientX - startX; petY = e.clientY - startY;
+                pet.style.left = petX + 'px'; pet.style.top = petY + 'px';
+            }
+        });
+        document.addEventListener('mouseup', () => {
+            if (isDragging) { isDragging = false; pet.src = 'pet_stand.png'; }
+        });
+    </script>
+</body>
+</html>
