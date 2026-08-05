@@ -58,7 +58,7 @@
                     
                     currentFrameIndex = (currentFrameIndex + 1) % walkFrames.length;
                     pet.src = walkFrames[currentFrameIndex];
-                    pet.style.transform = walkDirection === 1 ? 'scaleX(1)' : 'scaleX(-1)';
+                    pet.style.transform = walkDirection === 1 ? 'scaleX(-1)' : 'scaleX(1)';
                     if (Math.random() < 0.2) { spawnHeart(); }
                 } else {
                     pet.src = imgStand;
