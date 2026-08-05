@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 終極雙人擁抱版</title>
+    <title>雙人桌寵動態實驗室 - 雙向擁抱隨機版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
@@ -134,28 +134,37 @@
             });
             document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; petImg.src = imgStandL; } });
         });
+        // 🎬 全自動雙向擁抱導演系統
         function triggerHugEvent() {
             isHuggingGlobal = true;
+            
             const firstPet = activePets.slice(0, 1).pop();
             const secondPet = activePets.slice(1, 2).pop();
+            
             let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 - 64;
             let midY = (firstPet.data.getY() + secondPet.data.getY()) / 2;
             
             firstPet.data.setHide(true);
             secondPet.data.setHide(true);
             
-            hugStage.style.left = midX + 'px'; hugStage.style.top = midY + 'px';
+            hugStage.style.left = midX + 'px';
+            hugStage.style.top = midY + 'px';
             hugStage.style.display = 'block';
             
-            setTimeout(() => { hugImg.src = 'meet1_face.png'; }, 0);       
-            setTimeout(() => { hugImg.src = 'meet2_walk.png'; }, 1000);    
+            // 🎲 核心隨機機制：50% 機率用原本的圖，50% 機率在檔名前面加上 'r_'
+            const prefix = Math.random() < 0.5 ? '' : 'r_';
+            
+            setTimeout(() => { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
+            setTimeout(() => { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
+            
             setTimeout(() => { 
-                hugImg.src = 'meet3_hug.png';                             
+                hugImg.src = prefix + 'meet3_hug.png';                             
                 spawnHeart(hugStage, 'Takumi');                            
                 spawnHeart(hugStage, 'Aotsuki');
             }, 2200);
-            setTimeout(() => { hugImg.src = 'meet4_separate.png'; }, 4200); 
-            setTimeout(() => { hugImg.src = 'meet5_shy.png'; }, 5400);     
+            
+            setTimeout(() => { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
+            setTimeout(() => { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
             
             setTimeout(() => {
                 hugStage.style.display = 'none';
