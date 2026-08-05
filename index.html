@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 雙向擁抱隨機版</title>
+    <title>雙人桌寵動態實驗室 - 雙向擁抱版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
@@ -85,7 +85,8 @@
                         if (walkDirection === -1) { safeSetImg(walkFramesL[currentFrameIndex], imgStandL); } 
                         else { safeSetImg(walkFramesR[currentFrameIndex], imgStandR); }
                         petImg.style.transform = 'none'; 
-                        if (Math.random() < 0.1) { spawnHeart(container, folderName); }
+                        
+                        // ✨ 這裡已經幫你把隨機走路冒愛心的效果刪除了！
                         
                         if (index === 0 && activePets.length === 2) {
                             const firstPet = activePets.slice(0, 1).pop();
@@ -151,7 +152,6 @@
             hugStage.style.top = midY + 'px';
             hugStage.style.display = 'block';
             
-            // 🎲 核心隨機機制：50% 機率用原本的圖，50% 機率在檔名前面加上 'r_'
             const prefix = Math.random() < 0.5 ? '' : 'r_';
             
             setTimeout(() => { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
