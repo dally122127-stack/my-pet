@@ -6,7 +6,7 @@
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
-        /* 雙人合體大盒子的尺寸（因為裝兩個人，寬度放大到 256px） */
+        /* 雙人合體大盒子的尺寸（寬度放大到 256px） */
         .hug-container { position: absolute; width: 256px; height: 128px; z-index: 20; display: none; }
         .pet-img { width: 100%; height: 100%; cursor: grab; user-select: none; }
         .pet-img:active { cursor: grabbing; }
@@ -62,7 +62,7 @@
             let petX = 100 + (index * 300); // 初始距離拉開一點
             let petY = 200;
             let currentFrameIndex = 0;
-            let walkDirection = index === 0 ? 1 : -1; // 讓他們出生時一個朝右走、一個朝左走
+            let walkDirection = index === 0 ? 1 : -1; // 讓他們出生時一個朝右、一個朝左
             let petState = 'walk'; 
             let breathCount = 0;   
             const maxBreaths = 3;  
@@ -105,10 +105,13 @@
                         
                         if (Math.random() < 0.1) { spawnHeart(container, folderName); }
                         
-                        // ⏱️ 擁抱觸發雷達：【此處已修正為正確的陣列索引 [0] 與 [1]】
+                        // ⏱️ 擁抱觸發雷達：利用新的安全語法抓取陣列，防範文字被系統吃掉
                         if (index === 0 && activePets.length === 2) {
-                            let dist = Math.abs(activePets[0].data.getX() - activePets[1].data.getX());
-                            if (dist < 100 && !activePets[0].data.getIsDragging() && !activePets[1].data.getIsDragging() && Math.random() < 0.4) {
+                            const firstPet = activePets.slice(0, 1).pop();
+                            const secondPet = activePets.slice(1, 2).pop();
+                            
+                            let dist = Math.abs(firstPet.data.getX() - secondPet.data.getX());
+                            if (dist < 100 && !firstPet.data.getIsDragging() && !secondPet.data.getIsDragging() && Math.random() < 0.4) {
                                 triggerHugEvent();
                             }
                         }
@@ -162,13 +165,16 @@
         function triggerHugEvent() {
             isHuggingGlobal = true;
             
-            // 計算兩個角色的中間點，把合體舞台架在那裡【此處亦同步修正完成】
-            let midX = (activePets[0].data.getX() + activePets[1].data.getX()) / 2 - 64;
-            let midY = (activePets[0].data.getY() + activePets[1].data.getY()) / 2;
+            const firstPet = activePets.slice(0, 1).pop();
+            const secondPet = activePets.slice(1, 2).pop();
+            
+            // 計算兩個角色的中間點，把合體舞台架在那裡
+            let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 - 64;
+            let midY = (firstPet.data.getY() + secondPet.data.getY()) / 2;
             
             // 隱藏原本分開的兩隻角色
-            activePets[0].data.setHide(true);
-            activePets[1].data.setHide(true);
+            firstPet.data.setHide(true);
+            secondPet.data.setHide(true);
             
             // 秀出合體舞台
             hugStage.style.left = midX + 'px';
@@ -193,14 +199,14 @@
                 hugStage.style.display = 'none';
                 
                 // 讓兩隻角色彈開
-                activePets[0].data.setX(midX - 40);
-                activePets[1].data.setX(midX + 160);
+                firstPet.data.setX(midX - 40);
+                secondPet.data.setX(midX + 160);
                 
-                activePets[0].data.resetState();
-                activePets[1].data.resetState();
+                firstPet.data.resetState();
+                secondPet.data.resetState();
                 
-                activePets[0].data.setHide(false);
-                activePets[1].data.setHide(false);
+                firstPet.data.setHide(false);
+                secondPet.data.setHide(false);
                 
                 isHuggingGlobal = false; 
             }, 7000);
@@ -218,3 +224,5 @@
             checkImageExists(heart.src, () => {
                 parentContainer.appendChild(heart);
                 setTimeout(() => { heart.remove(); }, 1200);
+                }, () => {});
+            }
