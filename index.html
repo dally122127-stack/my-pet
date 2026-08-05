@@ -2,10 +2,12 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 左右手繪不對稱升級版</title>
+    <title>雙人桌寵動態實驗室 - 終極雙人擁抱版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
-        .pet-container { position: absolute; width: 128px; height: 128px; }
+        .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
+        /* 🛠️ 新增：雙人合體大盒子的尺寸（因為裝兩個人，寬度放大到 256px） */
+        .hug-container { position: absolute; width: 256px; height: 128px; z-index: 20; display: none; }
         .pet-img { width: 100%; height: 100%; cursor: grab; user-select: none; }
         .pet-img:active { cursor: grabbing; }
         .heart-effect {
@@ -21,18 +23,22 @@
 </head>
 <body>
 
+    <!-- 🛠️ 建立隱藏的雙人合體互動舞台 -->
+    <div id="hug-stage" class="hug-container">
+        <img id="hug-img" class="pet-img" src="meet1_face.png" alt="擁抱互動">
+    </div>
+
     <script>
-        // ==========================================
-        // 🎨 繪師專用設定區
-        const petsData = [
-            { folder: 'Takumi' },
-            { folder: 'Aotsuki' }
-        ];
-        // ==========================================
+        const petsData = [{ folder: 'Takumi' }, { folder: 'Aotsuki' }];
+        const activePets = []; // 用來存放兩隻角色的實體控制
+        
+        // 取得擁抱舞台元素
+        const hugStage = document.getElementById('hug-stage');
+        const hugImg = document.getElementById('hug-img');
+        let isHuggingGlobal = false; // 是否正在玩擁抱事件
 
         petsData.forEach((petConfig, index) => {
             const folderName = petConfig.folder;
-
             const container = document.createElement('div');
             container.className = 'pet-container';
             
@@ -42,154 +48,160 @@
             container.appendChild(petImg);
             document.body.appendChild(container);
 
-            // 📂 圖片路徑規劃（拆分為左側 L 與右側 R 兩組）
             let imgStandL = `${folderName}/shime1.png`;
             let imgStandR = `${folderName}/shime1_r.png`;
-            
             let imgDrag = `${folderName}/drag.png`; 
-            
             let walkFramesL = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
             let walkFramesR = [`${folderName}/shime2_r.png`, `${folderName}/shime3_r.png`];
-            
             let imgSitIn = `${folderName}/sit_in.png`;
             let imgSitOut = `${folderName}/sit_out.png`;
             let imgStandUp = `${folderName}/stand_up.png`;
             
-            // 📊 變數控制
             let isDragging = false;
             let startX, startY;
-            let petX = 100 + (index * 150); 
-            let petY = 150 + (index * 50);
+            let petX = 100 + (index * 300); // 初始距離拉開一點
+            let petY = 200;
             let currentFrameIndex = 0;
-            
-            // 🧭 方向控制（-1 代表往左走，1 代表往右走。因為你原本的圖是朝左，所以預設為 -1）
-            let walkDirection = -1; 
-
+            let walkDirection = index === 0 ? 1 : -1; // 讓他們出生時一個朝右走、一個朝左走
             let petState = 'walk'; 
             let breathCount = 0;   
             const maxBreaths = 3;  
 
-            // 預設朝左發呆
             petImg.src = imgStandL;
             container.style.left = petX + 'px';
             container.style.top = petY + 'px';
 
-            // 核心動態定時器
-            setInterval(() => {
-                if (isDragging) return;
+            // 把控制資料塞進陣列
+            activePets.push({ container, petImg, data: { getX: () => petX, setX: (v) => { petX = v; container.style.left = v+'px'; }, getY: () => petY, setY: (v) => { petY = v; container.style.top = v+'px'; }, getIsDragging: () => isDragging, setHide: (h) => { container.style.display = h ? 'none' : 'block'; }, resetState: () => { petState = 'walk'; } } });
 
-                // ====== 狀態 1：正常散步與發呆 ======
+            // 核心散步計時器
+            setInterval(() => {
+                if (isDragging || isHuggingGlobal) return;
+
                 if (petState === 'walk') {
                     if (Math.random() < 0.8) { 
-                        // 隨機轉向
                         if (Math.random() < 0.15) { walkDirection = walkDirection === -1 ? 1 : -1; }
-                        
                         petX += walkDirection * 12;
                         if (petX < 0) { petX = 0; walkDirection = 1; }
                         if (petX > window.innerWidth - 128) { petX = window.innerWidth - 128; walkDirection = -1; }
                         container.style.left = petX + 'px';
                         
                         currentFrameIndex = (currentFrameIndex + 1) % walkFramesL.length;
-                        
-                        // 🎯 核心修改：根據方向直接更換圖檔，並徹底拔除 scaleX 鏡像程式碼！
-                        if (walkDirection === -1) {
-                            // 往左走，讀取左邊專屬圖
-                            safeSetImg(walkFramesL[currentFrameIndex], imgStandL);
-                        } else {
-                            // 往右走，讀取右邊專屬圖
-                            safeSetImg(walkFramesR[currentFrameIndex], imgStandR);
-                        }
-                        
-                        // 徹底移除圖片翻轉，讓圖保持你畫的原汁原味
+                        if (walkDirection === -1) { safeSetImg(walkFramesL[currentFrameIndex], imgStandL); } 
+                        else { safeSetImg(walkFramesR[currentFrameIndex], imgStandR); }
                         petImg.style.transform = 'none'; 
                         
                         if (Math.random() < 0.1) { spawnHeart(container, folderName); }
+                        
+                        // ⏱️ 擁抱觸發雷達：兩人在走路時，如果靠得非常近（距離小於 100 像素），就有 40% 的機率觸發大團圓擁抱！
+                        if (index === 0 && activePets.length === 2) {
+                            let dist = Math.abs(activePets[0].data.getX() - activePets[1].data.getX());
+                            if (dist < 100 && !activePets[0].data.getIsDragging() && !activePets[1].data.getIsDragging() && Math.random() < 0.4) {
+                                triggerHugEvent();
+                            }
+                        }
                     } else {
                         if (Math.random() < 0.2) {
-                            petState = 'rest';
-                            breathCount = 0;
-                            safeSetImg(imgSitIn, imgStandL);
+                            petState = 'rest'; breathCount = 0; safeSetImg(imgSitIn, imgStandL);
                         } else {
-                            // 發呆時也要分左右看
-                            if (walkDirection === -1) {
-                                safeSetImg(imgStandL, imgStandL);
-                            } else {
-                                safeSetImg(imgStandR, imgStandR);
-                            }
+                            if (walkDirection === -1) { safeSetImg(imgStandL, imgStandL); } 
+                            else { safeSetImg(imgStandR, imgStandR); }
                             petImg.style.transform = 'none';
                         }
                     }
                 }
-                
-                // ====== 狀態 2：坐下呼吸 ======
                 else if (petState === 'rest') {
                     if (breathCount < maxBreaths * 2) {
                         if (breathCount % 2 === 0) { safeSetImg(imgSitOut, imgStandL); } 
                         else { safeSetImg(imgSitIn, imgStandL); }
                         breathCount++;
-                    } else {
-                        petState = 'get_up';
-                        safeSetImg(imgStandUp, imgStandL);
-                    }
+                    } else { petState = 'get_up'; safeSetImg(imgStandUp, imgStandL); }
                 }
-                
-                // ====== 狀態 3：站起過渡 ======
                 else if (petState === 'get_up') {
                     petState = 'walk';
-                    if (walkDirection === -1) { petImg.src = imgStandL; } 
-                    else { petImg.src = imgStandR; }
+                    if (walkDirection === -1) { petImg.src = imgStandL; } else { petImg.src = imgStandR; }
                 }
-
             }, 400);
 
-            // 升級版安全防破圖功能（多傳入一個後備圖片路徑）
             function safeSetImg(targetSrc, backupSrc) {
-                checkImageExists(targetSrc, () => {
-                    petImg.src = targetSrc;
-                }, () => {
-                    petImg.src = backupSrc; // 如果你還沒上傳帶有 _r 的右側圖，會自動用左側圖頂替
-                });
+                checkImageExists(targetSrc, () => { petImg.src = targetSrc; }, () => { petImg.src = backupSrc; });
             }
 
             // 滑鼠互動
             petImg.addEventListener('mousedown', (e) => {
-                isDragging = true; 
-                petState = 'walk';
-                checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { 
-                    // 抓起來時如果沒有 drag.png，就看他原本面向哪裡，用哪一邊的 shime3 頂替
-                    petImg.src = walkDirection === -1 ? `${folderName}/shime3.png` : `${folderName}/shime3_r.png`; 
-                });
+                if (isHuggingGlobal) return; // 正在抱抱時不能強行抓走
+                isDragging = true; petState = 'walk';
+                checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { petImg.src = walkDirection === -1 ? `${folderName}/shime3.png` : `${folderName}/shime3_r.png`; });
                 startX = e.clientX - petX; startY = e.clientY - petY;
                 spawnHeart(container, folderName);
             });
-
             document.addEventListener('mousemove', (e) => {
                 if (isDragging) {
                     petX = e.clientX - startX; petY = e.clientY - startY;
                     container.style.left = petX + 'px'; container.style.top = petY + 'px';
                 }
             });
-
             document.addEventListener('mouseup', () => {
-                if (isDragging) { 
-                    isDragging = false; 
-                    petImg.src = walkDirection === -1 ? imgStandL : imgStandR; 
-                }
+                if (isDragging) { isDragging = false; petImg.src = imgStandL; }
             });
         });
 
+        // 🎬 核心：全自動擁抱動畫導演系統
+        function triggerHugEvent() {
+            isHuggingGlobal = true;
+            
+            // 計算兩個角色的中間點，把合體舞台架在那裡
+            let midX = (activePets[0].data.getX() + activePets[1].data.getX()) / 2 - 64;
+            let midY = (activePets[0].data.getY() + activePets[1].data.getY()) / 2;
+            
+            // 隱藏原本分開的兩隻角色
+            activePets[0].data.setHide(true);
+            activePets[1].data.setHide(true);
+            
+            // 秀出合體舞台
+            hugStage.style.left = midX + 'px';
+            hugStage.style.top = midY + 'px';
+            hugStage.style.display = 'block';
+            
+            // ⏱️ 開始播放你設計的 5 張分鏡（每隔 1.2 秒換一幕，時間可以自己調）
+            setTimeout(() => { hugImg.src = 'meet1_face.png'; }, 0);       // 1. 面對面
+            setTimeout(() => { hugImg.src = 'meet2_walk.png'; }, 1000);    // 2. 走近
+            
+            setTimeout(() => { 
+                hugImg.src = 'meet3_hug.png';                             // 3. 擁抱！
+                spawnHeart(hugStage, 'Takumi');                            // 抱抱時順便噴個愛心！
+                spawnHeart(hugStage, 'Aotsuki');
+            }, 2200);
+            
+            setTimeout(() => { hugImg.src = 'meet4_separate.png'; }, 4200]; // 4. 分開
+            setTimeout(() => { hugImg.src = 'meet5_shy.png'; }, 5400);     // 5. 害羞
+            
+            // 🎬 互動結束，解散！
+            setTimeout(() => {
+                hugStage.style.display = 'none';
+                
+                // 讓兩隻角色在中間點的左右兩側重新誕生，各自彈開繼續散步
+                activePets[0].data.setX(midX - 40);
+                activePets[1].data.setX(midX + 160);
+                
+                activePets[0].data.resetState();
+                activePets[1].data.resetState();
+                
+                activePets[0].data.setHide(false);
+                activePets[1].data.setHide(false);
+                
+                isHuggingGlobal = false; // 解除鎖定
+            }, 7000);
+        }
+
         function checkImageExists(url, success, error) {
-            const img = new Image();
-            img.onload = success;
-            img.onerror = error;
-            img.src = url;
+            const img = new Image(); img.onload = success; img.onerror = error; img.src = url;
         }
 
         function spawnHeart(parentContainer, folder) {
             const heart = document.createElement('img');
-            heart.src = `${folder}/heart.png`; 
-            heart.className = 'heart-effect';
-            heart.style.left = (45 + (Math.random() - 0.5) * 30) + 'px';
+            heart.src = `${folder}/heart.png`; heart.className = 'heart-effect';
+            heart.style.left = (Math.random() * 160 + 40) + 'px';
             heart.style.top = '-10px';
             checkImageExists(heart.src, () => {
                 parentContainer.appendChild(heart);
