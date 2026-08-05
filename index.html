@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 雙向擁抱與趴睡版</title>
+    <title>雙人桌寵動態實驗室 - 深度熟睡版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
@@ -52,7 +52,6 @@
             let imgSitOut = `${folderName}/sit_out.png`;
             let imgStandUp = `${folderName}/stand_up.png`;
             
-            // 🤖 新增：趴睡圖片路徑自動組合
             let imgSleepDown = `${folderName}/sleep_down.png`;
             let imgSleepIn = `${folderName}/sleep_in.png`;
             let imgSleepOut = `${folderName}/sleep_out.png`;
@@ -62,8 +61,9 @@
             let petX = 100 + (index * 300); let petY = 200;
             let currentFrameIndex = 0; let walkDirection = index === 0 ? 1 : -1;
             
-            // 📊 擴充狀態變數：'walk', 'rest_sit'（坐下呼吸）, 'rest_sleep'（趴著睡覺）, 'get_up', 'wake_up'
-            let petState = 'walk'; let breathCount = 0; const maxBreaths = 3;  
+            let petState = 'walk'; let breathCount = 0; 
+            const maxBreaths = 3;       // 坐下喝茶的吸吐次數
+            const maxSleepBreaths = 6;  // 😴 這裡鎖定了：睡覺至少要呼吸 6 下（吸吐吸吐吸吐共3大循環）！
 
             petImg.src = imgStandL;
             container.style.left = petX + 'px'; container.style.top = petY + 'px';
@@ -82,7 +82,7 @@
             setInterval(() => {
                 if (isDragging || isHuggingGlobal) return;
                 
-                // ====== 狀態 1：正常走路與隨機休息 ======
+                // ====== 狀態 1：走路散步 ======
                 if (petState === 'walk') {
                     if (Math.random() < 0.8) { 
                         if (Math.random() < 0.15) { walkDirection = walkDirection === -1 ? 1 : -1; }
@@ -105,7 +105,6 @@
                         }
                     } else {
                         if (Math.random() < 0.25) { 
-                            // 🎲 隨機二選一：50% 坐下休息，50% 趴下睡覺！
                             if (Math.random() < 0.5) {
                                 petState = 'rest_sit'; breathCount = 0; safeSetImg(imgSitIn, imgStandL);
                             } else {
@@ -118,29 +117,28 @@
                         }
                     }
                 }
-                // ====== 狀態 2：坐下呼吸 ======
+                // ====== 狀態 2：坐下休息 ======
                 else if (petState === 'rest_sit') {
                     if (breathCount < maxBreaths * 2) {
                         if (breathCount % 2 === 0) { safeSetImg(imgSitOut, imgStandL); } else { safeSetImg(imgSitIn, imgStandL); }
                         breathCount++;
                     } else { petState = 'get_up'; safeSetImg(imgStandUp, imgStandL); }
                 }
-                // ====== 狀態 3：趴下睡覺與規律呼吸 ======
+                // ====== 狀態 3：深度趴下睡覺 ======
                 else if (petState === 'rest_sleep') {
                     if (breathCount === 0) {
-                        safeSetImg(imgSleepDown, imgStandL); // 趴下
+                        safeSetImg(imgSleepDown, imgStandL); 
                         breathCount++;
-                    } else if (breathCount <= maxBreaths * 2) {
-                        // 開始規律吸氣吐氣
+                    } else if (breathCount <= maxSleepBreaths) { // ✨ 這裡更換成了長睡眠控制變數
                         if (breathCount % 2 === 0) { safeSetImg(imgSleepOut, imgStandL); } else { safeSetImg(imgSleepIn, imgStandL); }
                         breathCount++;
-                    } else { petState = 'wake_up'; safeSetImg(imgSleepUp, imgStandL); } // 睡飽醒來
+                    } else { petState = 'wake_up'; safeSetImg(imgSleepUp, imgStandL); } 
                 }
-                // ====== 狀態 4：坐下站起過渡 ======
+                // ====== 狀態 4 & 5：醒來過渡 ======
                 else if (petState === 'get_up') {
                     petState = 'walk'; if (walkDirection === -1) { petImg.src = imgStandL; } else { petImg.src = imgStandR; }
                 }
-                // ====== 狀態 5：睡覺醒來過渡 ======
+                // ====== 狀態 5 ======
                 else if (petState === 'wake_up') {
                     petState = 'walk'; if (walkDirection === -1) { petImg.src = imgStandL; } else { petImg.src = imgStandR; }
                 }
@@ -168,31 +166,26 @@
         // 🎬 全自動雙向擁抱導演系統
         function triggerHugEvent() {
             isHuggingGlobal = true;
-            
             const firstPet = activePets.slice(0, 1).pop();
             const secondPet = activePets.slice(1, 2).pop();
-            
-            let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 + 0; // 這裡保留了你調好的 +0 橫向修正
+            let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 + 0; 
             let midY = (firstPet.data.getY() + secondPet.data.getY()) / 2;
             
             firstPet.data.setHide(true);
             secondPet.data.setHide(true);
             
-            hugStage.style.left = midX + 'px';
-            hugStage.style.top = midY + 'px';
+            hugStage.style.left = midX + 'px'; hugStage.style.top = midY + 'px';
             hugStage.style.display = 'block';
             
             const prefix = Math.random() < 0.5 ? '' : 'r_';
             
             setTimeout(() => { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
             setTimeout(() => { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
-            
             setTimeout(() => { 
                 hugImg.src = prefix + 'meet3_hug.png';                             
                 spawnHeart(hugStage, 'Takumi');                            
                 spawnHeart(hugStage, 'Aotsuki');
             }, 2200);
-            
             setTimeout(() => { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
             setTimeout(() => { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
             
@@ -215,8 +208,7 @@
         function spawnHeart(parentContainer, folder) {
             const heart = document.createElement('img');
             heart.src = `${folder}/heart.png`; heart.className = 'heart-effect';
-            heart.style.left = (Math.random() * 160 + 40) + 'px'; 
-            heart.style.top = '40px'; // 這裡保留了你調好的 40px 頭頂高度修正
+            heart.style.left = (Math.random() * 160 + 40) + 'px'; heart.style.top = '40px'; 
             checkImageExists(heart.src, () => {
                 parentContainer.appendChild(heart);
                 setTimeout(() => { heart.remove(); }, 1200);
