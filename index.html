@@ -93,10 +93,18 @@
                             checkImageExists(walkFramesR[currentFrameIndex], function() { petImg.src = walkFramesR[currentFrameIndex]; }, function() { petImg.src = imgStandR; });
                         }
                         petImg.style.transform = 'none'; 
+                        // 🎯 核心修復：使用完全不簡寫的標準語法，精確定位第一隻與第二隻角色
                         if (index === 0 && activePets.length === 2) {
-                            let dist = Math.abs(activePets.pos.x - activePets.pos.x);
-                            if (dist < 100 && Math.random() < 0.4) { triggerHugEvent(); }
+                            const pet1 = activePets.slice(0, 1).pop();
+                            const pet2 = activePets.slice(1, 2).pop();
+
+                            let dist = Math.abs(pet1.pos.x - pet2.pos.x);
+                            // 當兩隻角色距離小於 100 像素，且滿足隨機率時，準時觸發抱抱！
+                            if (dist < 80 && Math.random() < 0.4) { 
+                                triggerHugEvent(); 
+                            }
                         }
+
                     } else {
                         if (Math.random() < 0.25) { 
                             if (Math.random() < 0.5) {
