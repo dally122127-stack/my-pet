@@ -2,12 +2,13 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - Takumi 造型</title>
+    <title>雙人獨立桌寵實驗室</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
-        #pet-container { position: absolute; width: 128px; height: 128px; }
-        #pet { width: 100%; height: 100%; cursor: grab; user-select: none; transition: transform 0.1s; }
-        #pet:active { cursor: grabbing; }
+        /* 每個桌寵小盒子的基礎樣式 */
+        .pet-container { position: absolute; width: 128px; height: 128px; }
+        .pet-img { width: 100%; height: 100%; cursor: grab; user-select: none; }
+        .pet-img:active { cursor: grabbing; }
         .heart-effect {
             position: absolute; width: 32px; height: 32px;
             pointer-events: none; animation: floatUp 1.2s ease-out forwards;
@@ -20,79 +21,122 @@
     </style>
 </head>
 <body>
-    <div id="pet-container">
-        <img id="pet" src="" alt="桌寵">
-    </div>
+
+    <!-- 這裡會由下方的程式碼自動產生兩個角色，不需要手動寫 HTML -->
 
     <script>
         // ==========================================
-        // 🎨 繪師專用設定區：資料夾名稱已更新為 Takumi
-        const folderName = 'Takumi'; 
+        // 🎨 繪師專用設定區：在這裡自由增加或修改角色資料夾名稱！
+        const petsData = [
+            { folder: 'Takumi' }, // 第一個角色
+            { folder: 'Eiden' }   // 第二個角色（如果你改了資料夾名字，把這行改成你的新資料夾名即可）
+        ];
         // ==========================================
 
-        const container = document.getElementById('pet-container');
-        const pet = document.getElementById('pet');
-        let isDragging = false, startX, startY, petX = 150, petY = 150;
-        
-        // 自動動態組合路徑，對齊你上傳的 shime1, shime2, shime3
-        let imgStand = `${folderName}/shime1.png`;
-        let imgDrag = `${folderName}/shime3.png`;
-        let walkFrames = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
-        
-        let currentFrameIndex = 0;
-        let walkDirection = 1;
+        // 為每個角色建立獨立的控制系統
+        petsData.forEach((petConfig, index) => {
+            const folderName = petConfig.folder;
 
-        // 預設載入發呆圖
-        pet.src = imgStand;
-        container.style.left = petX + 'px'; container.style.top = petY + 'px';
+            // 1. 動態建立 HTML 結構
+            const container = document.createElement('div');
+            container.className = 'pet-container';
+            
+            const petImg = document.createElement('img');
+            petImg.className = 'pet-img';
+            petImg.alt = folderName;
+            container.appendChild(petImg);
+            document.body.appendChild(container);
 
-        // 核心動態定時器
-        setInterval(() => {
-            if (!isDragging) {
-                if (Math.random() < 0.7) {
-                    if (Math.random() < 0.15) { walkDirection = walkDirection === 1 ? -1 : 1; }
-                    petX += walkDirection * 15;
-                    if (petX < 0) { petX = 0; walkDirection = 1; }
-                    if (petX > window.innerWidth - 128) { petX = window.innerWidth - 128; walkDirection = -1; }
-                    container.style.left = petX + 'px';
-                    
-                    currentFrameIndex = (currentFrameIndex + 1) % walkFrames.length;
-                    pet.src = walkFrames[currentFrameIndex];
-                    pet.style.transform = walkDirection === 1 ? 'scaleX(-1)' : 'scaleX(1)';
-                    if (Math.random() < 0.2) { spawnHeart(); }
-                } else {
-                    pet.src = imgStand;
+            // 2. 設定個別角色的專屬圖片路徑
+            let imgStand = `${folderName}/shime1.png`;
+            let imgDrag = `${folderName}/shime3.png`;
+            let walkFrames = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
+            
+            // 3. 初始化每個角色的獨立變數
+            let isDragging = false;
+            let startX, startY;
+            // 讓兩個角色出生在不同的初始位置，免得重疊在一起
+            let petX = 100 + (index * 150); 
+            let petY = 150 + (index * 50);
+            let currentFrameIndex = 0;
+            let walkDirection = 1;
+
+            petImg.src = imgStand;
+            container.style.left = petX + 'px';
+            container.style.top = petY + 'px';
+
+            // 4. 個別角色的走路計時器
+            setInterval(() => {
+                if (!isDragging) {
+                    if (Math.random() < 0.7) {
+                        if (Math.random() < 0.15) { walkDirection = walkDirection === 1 ? -1 : 1; }
+                        petX += walkDirection * 15;
+                        if (petX < 0) { petX = 0; walkDirection = 1; }
+                        if (petX > window.innerWidth - 128) { petX = window.innerWidth - 128; walkDirection = -1; }
+                        container.style.left = petX + 'px';
+                        
+                        currentFrameIndex = (currentFrameIndex + 1) % walkFrames.length;
+                        const nextSrc = walkFrames[currentFrameIndex];
+                        
+                        checkImageExists(nextSrc, () => {
+                            petImg.src = nextSrc;
+                        }, () => {
+                            petImg.src = imgStand;
+                        });
+
+                        // 🔄 這裡已經自動套用了你上次調整好的「初始朝左素材修復轉向」(-1 與 1 對調)
+                        petImg.style.transform = walkDirection === 1 ? 'scaleX(-1)' : 'scaleX(1)';
+                        if (Math.random() < 0.2) { spawnHeart(container, folderName); }
+                    } else {
+                        petImg.src = imgStand;
+                    }
                 }
-            }
-        }, 400);
+            }, 400);
 
-        function spawnHeart() {
+            // 5. 個別角色的滑鼠互動
+            petImg.addEventListener('mousedown', (e) => {
+                isDragging = true; 
+                checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { petImg.src = imgStand; });
+                startX = e.clientX - petX; startY = e.clientY - petY;
+                spawnHeart(container, folderName);
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    petX = e.clientX - startX; petY = e.clientY - startY;
+                    container.style.left = petX + 'px'; container.style.top = petY + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) { isDragging = false; petImg.src = imgStand; }
+            });
+        });
+
+        // 安全檢查圖片功能
+        function checkImageExists(url, success, error) {
+            const img = new Image();
+            img.onload = success;
+            img.onerror = error;
+            img.src = url;
+        }
+
+        // 獨立特效功能
+        function spawnHeart(parentContainer, folder) {
             const heart = document.createElement('img');
-            // 這裡會自動去抓 Takumi 資料夾裡的 heart.png
-            heart.src = `${folderName}/heart.png`; 
+            heart.src = `${folder}/heart.png`; 
             heart.className = 'heart-effect';
             heart.style.left = (45 + (Math.random() - 0.5) * 30) + 'px';
             heart.style.top = '-10px';
-            container.appendChild(heart);
-            setTimeout(() => { heart.remove(); }, 1200);
+            
+            // 檢查特效圖是否存在，存在才放出來，防止任何破圖符號出現
+            checkImageExists(heart.src, () => {
+                parentContainer.appendChild(heart);
+                setTimeout(() => { heart.remove(); }, 1200);
+            }, () => {
+                // 找不到愛心圖就什麼都不做，安靜地跳過
+            });
         }
-
-        // 滑鼠互動
-        pet.addEventListener('mousedown', (e) => {
-            isDragging = true; 
-            pet.src = imgDrag; 
-            startX = e.clientX - petX; startY = e.clientY - petY;
-            spawnHeart();
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                petX = e.clientX - startX; petY = e.clientY - startY;
-                container.style.left = petX + 'px'; container.style.top = petY + 'px';
-            }
-        });
-        document.addEventListener('mouseup', () => {
-            if (isDragging) { isDragging = false; pet.src = imgStand; }
-        });
     </script>
 </body>
 </html>
