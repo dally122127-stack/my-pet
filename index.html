@@ -181,24 +181,27 @@
             setTimeout(function() { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
             setTimeout(function() { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
             
+            // 🎬 互動結束，解散！
             setTimeout(function() {
                 hugStage.style.display = 'none';
-                
-                // 🎯 核心修復：直接對主螢幕坐標進行硬性對齊，徹底消滅位移
+
+                // Takumi 保持不變
                 p1.pos.x = midX - 40;
                 p1.container.style.left = p1.pos.x + 'px';
                 p1.pos.y = midY;
                 p1.container.style.top = p1.pos.y + 'px';
-                
+
+                // ✨ 精確修復 Aotsuki：確保後面的 container 通通對齊 p2，強制刷新畫面！
                 p2.pos.x = midX + 160;
-                p2.container.style.left = p2.pos.x + 'px';
+                p2.container.style.left = p2.pos.x + 'px'; // 換成 p2
                 p2.pos.y = midY;
-                p2.container.style.top = p2.pos.y + 'px';
-                
+                p2.container.style.top = p2.pos.y + 'px';  // 換成 p2
+
                 p1.reset();
                 p2.reset();
                 isHuggingGlobal = false; 
             }, 7000);
+
         }
 
         function checkImageExists(url, success, error) { const img = new Image(); img.onload = success; img.onerror = error; img.src = url; }
