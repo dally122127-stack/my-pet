@@ -191,23 +191,28 @@
                 if (isDragging) { isDragging = false; petImg.src = (walkDirection === -1) ? imgStandL : imgStandR; } 
             });
         });
-        // 🎬 全自動雙向擁抱導演系統（標準非簡寫版）
+                // 🎬 全自動雙向擁抱導演系統（精確座標修復版）
         function triggerHugEvent() {
             isHuggingGlobal = true;
             
+            // 🎯 核心修復：使用完全不簡寫的標準語法，精確定位第一隻與第二隻角色，防範漏字
             const firstPet = activePets[0];
             const secondPet = activePets[1];
             
+            // 計算兩個角色的中間點，把合體舞台架在那裡（+0 橫向修正值）
             let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 + 0; 
             let midY = (firstPet.data.getY() + secondPet.data.getY()) / 2;
             
+            // 隱藏原本分開的兩隻角色
             firstPet.data.setHide(true);
             secondPet.data.setHide(true);
             
+            // 鎖定擁抱舞台的位置並顯示
             hugStage.style.left = midX + 'px';
             hugStage.style.top = midY + 'px';
             hugStage.style.display = 'block';
             
+            // 🎲 隨機決定播放正向或反向圖片
             let prefix = '';
             if (Math.random() < 0.5) {
                 prefix = '';
@@ -215,6 +220,7 @@
                 prefix = 'r_';
             }
             
+            // ⏱️ 擁抱劇場定時器：依序無縫切換 5 張手繪分鏡圖
             setTimeout(function() { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
             setTimeout(function() { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
             setTimeout(function() { 
@@ -223,27 +229,31 @@
                 spawnHeart(hugStage, 'Aotsuki');
             }, 2200);
             setTimeout(function() { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
-            setTimeout(() => { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
+            setTimeout(function() { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
             
-            // 互動結束，解散！
+            // 🎬 7 秒小劇場結束，準時解散！
             setTimeout(function() {
+                // 關閉擁抱合體舞台
                 hugStage.style.display = 'none';
                 
-                // 強制將隱形座標拉回原地，徹底解決位移問題！
+                // 🎯 核心鎖死大位移：解散時，強行將兩人的隱形座標抓回擁抱的原地中間點，再往兩側彈開！
                 firstPet.data.setX(midX - 40);
                 secondPet.data.setX(midX + 160);
                 firstPet.data.setY(midY);
                 secondPet.data.setY(midY);
                 
+                // 解除隱形，恢復散步狀態
                 firstPet.data.resetState();
                 secondPet.data.resetState();
                 firstPet.data.setHide(false);
                 secondPet.data.setHide(false);
                 
+                // 釋放全局擁抱鎖定
                 isHuggingGlobal = false; 
             }, 7000);
         }
 
+        // 萬用圖片安全檢查功能
         function checkImageExists(url, success, error) {
             const img = new Image(); 
             img.onload = success; 
@@ -251,6 +261,7 @@
             img.src = url;
         }
 
+        // 噴愛心特效（40px 頭頂高度完美綁定）
         function spawnHeart(parentContainer, folder) {
             const heart = document.createElement('img');
             heart.src = folder + '/heart.png'; 
@@ -261,9 +272,10 @@
                 parentContainer.appendChild(heart);
                 setTimeout(function() { heart.remove(); }, 1200);
             }, function() {
-                // 找不到愛心圖不處理，不彈破圖
+                // 找不到愛心圖不處理，防止噴破圖
             });
         }
     </script>
 </body>
 </html>
+
