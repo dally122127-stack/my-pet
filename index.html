@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 終極大團圓完美版</title>
+    <title>雙人桌寵動態實驗室 - 終極完美版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
@@ -29,7 +29,7 @@
 
     <script>
         const petsData = [
-            { folder: 'Takumi', sleepBreaths: 18 },
+            { folder: 'Takumi', sleepBreaths: 12 },
             { folder: 'Aotsuki', sleepBreaths: 6 }
         ];
         const activePets = [];
@@ -72,26 +72,22 @@
             petImg.src = imgStandL;
             container.style.left = petObj.x + 'px'; container.style.top = petObj.y + 'px';
 
-            activePets.push({
+            activePets.push({ 
                 container: container, petImg: petImg, pos: petObj,
                 reset: function() { isDragging = false; petState = 'walk'; container.style.display = 'block'; }
             });
 
-            // 動作切換計時器
             setInterval(function() {
                 if (isDragging || isHuggingGlobal) { return; }
-
-                // 🎯 終極鎖死漏洞：只要正在抱抱，強行凍結後台所有的座標加算，不准任何隱形位移！
-                if (isHuggingGlobal === true) { petObj.x = petObj.x; petObj.y = petObj.y; return; }
-
+                
                 if (petState === 'walk') {
-
                     if (Math.random() < 0.8) { 
                         if (Math.random() < 0.15) { walkDirection = (walkDirection === -1) ? 1 : -1; }
                         petObj.x += walkDirection * 12;
                         if (petObj.x < 0) { petObj.x = 0; walkDirection = 1; }
                         if (petObj.x > window.innerWidth - 128) { petObj.x = window.innerWidth - 128; walkDirection = -1; }
                         container.style.left = petObj.x + 'px';
+                        
                         currentFrameIndex = (currentFrameIndex + 1) % walkFramesL.length;
                         if (walkDirection === -1) {
                             checkImageExists(walkFramesL[currentFrameIndex], function() { petImg.src = walkFramesL[currentFrameIndex]; }, function() { petImg.src = imgStandL; });
@@ -99,18 +95,13 @@
                             checkImageExists(walkFramesR[currentFrameIndex], function() { petImg.src = walkFramesR[currentFrameIndex]; }, function() { petImg.src = imgStandR; });
                         }
                         petImg.style.transform = 'none'; 
-                        // 🎯 核心修復：使用完全不簡寫的標準語法，精確定位第一隻與第二隻角色
+                        
                         if (index === 0 && activePets.length === 2) {
                             const pet1 = activePets.slice(0, 1).pop();
                             const pet2 = activePets.slice(1, 2).pop();
-
                             let dist = Math.abs(pet1.pos.x - pet2.pos.x);
-                            // 當兩隻角色距離小於 50 像素，且滿足隨機率時，準時觸發抱抱！
-                            if (dist < 50 && Math.random() < 0.4) { 
-                                triggerHugEvent(); 
-                            }
+                            if (dist < 100 && Math.random() < 0.4) { triggerHugEvent(); }
                         }
-
                     } else {
                         if (Math.random() < 0.25) { 
                             if (Math.random() < 0.5) {
@@ -150,22 +141,24 @@
             petImg.addEventListener('mousedown', function(e) {
                 if (isHuggingGlobal) { return; }
                 isDragging = true; petState = 'walk';
-                chk(imgDrag, function() { petImg.src = imgDrag; }, function() { petImg.src = (walkDirection === -1) ? (folderName + '/shime3.png') : (folderName + '/shime3_r.png'); });
-                startX = e.clientX - petObj.x; startY = e.clientY - petObj.y; spH(container, folderName);
+                checkImageExists(imgDrag, function() { petImg.src = imgDrag; }, function() { petImg.src = (walkDirection === -1) ? (folderName + '/shime3.png') : (folderName + '/shime3_r.png'); });
+                startX = e.clientX - petObj.x; startY = e.clientY - petObj.y; spawnHeart(container, folderName);
             });
             document.addEventListener('mousemove', function(e) { if (isDragging) { petObj.x = e.clientX - startX; petObj.y = e.clientY - startY; container.style.left = petObj.x + 'px'; container.style.top = petObj.y + 'px'; } });
             document.addEventListener('mouseup', function() { if (isDragging) { isDragging = false; petImg.src = (walkDirection === -1) ? imgStandL : imgStandR; } });
         });
+        // 🎬 全自動雙向擁抱導演系統（像素死命令鎖定版）
         function triggerHugEvent() {
             isHuggingGlobal = true;
-            const p1 = activePets.slice(0, 1).pop();
-            const p2 = activePets.slice(1, 2).pop();
             
-            let midX = (p1.pos.x + p2.pos.x) / 2 + 0; 
-            let midY = (p1.pos.y + p2.pos.y) / 2;
+            const firstPet = activePets.slice(0, 1).pop();
+            const secondPet = activePets.slice(1, 2).pop();
             
-            p1.container.style.display = 'none';
-            p2.container.style.display = 'none';
+            let midX = (firstPet.pos.x + secondPet.pos.x) / 2 + 0; 
+            let midY = (firstPet.pos.y + secondPet.pos.y) / 2;
+            
+            firstPet.container.style.display = 'none';
+            secondPet.container.style.display = 'none';
             
             hugStage.style.left = midX + 'px'; hugStage.style.top = midY + 'px';
             hugStage.style.display = 'block';
@@ -176,40 +169,38 @@
             setTimeout(function() { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
             setTimeout(function() { 
                 hugImg.src = prefix + 'meet3_hug.png';                             
-                spH(hugStage, 'Takumi'); spH(hugStage, 'Aotsuki');
+                spawnHeart(hugStage, 'Takumi'); spawnHeart(hugStage, 'Aotsuki');
             }, 2200);
             setTimeout(function() { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
             setTimeout(function() { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
             
-            // 🎬 互動結束，解散！
+            // 🎬 7 秒劇場時間到，強制原地解散，不經變數計算
             setTimeout(function() {
                 hugStage.style.display = 'none';
-
-                // Takumi 保持不變
-                p1.pos.x = midX - 40;
-                p1.container.style.left = p1.pos.x + 'px';
-                p1.pos.y = midY;
-                p1.container.style.top = p1.pos.y + 'px';
-
-                // ✨ 精確修復 Aotsuki：確保後面的 container 通通對齊 p2，強制刷新畫面！
-                p2.pos.x = midX + 160;
-                p2.container.style.left = p2.pos.x + 'px'; // 換成 p2
-                p2.pos.y = midY;
-                p2.container.style.top = p2.pos.y + 'px';  // 換成 p2
-
-                p1.reset();
-                p2.reset();
+                
+                // 🎯 核心防線：強行對齊刷新網頁座標，堵死位移
+                firstPet.pos.x = midX - 40;
+                firstPet.container.style.left = (midX - 40) + 'px';
+                firstPet.pos.y = midY;
+                firstPet.container.style.top = midY + 'px';
+                
+                secondPet.pos.x = midX + 160;
+                secondPet.container.style.left = (midX + 160) + 'px';
+                secondPet.pos.y = midY;
+                secondPet.container.style.top = midY + 'px';
+                
+                firstPet.reset();
+                secondPet.reset();
                 isHuggingGlobal = false; 
             }, 7000);
-
         }
 
         function checkImageExists(url, success, error) { const img = new Image(); img.onload = success; img.onerror = error; img.src = url; }
-        function chk(u, s, e) { checkImageExists(u, s, e); }
-        function spH(p, f) {
-            const h = document.createElement('img'); h.src = f + '/heart.png'; h.className = 'heart-effect';
-            h.style.left = (Math.random() * 160 + 40) + 'px'; h.style.top = '40px'; 
-            checkImageExists(h.src, function() { p.appendChild(h); setTimeout(function() { h.remove(); }, 1200); }, function() {});
+        function spawnHeart(parentContainer, folder) {
+            const heart = document.createElement('img');
+            heart.src = folder + '/heart.png'; heart.className = 'heart-effect';
+            heart.style.left = (Math.random() * 160 + 40) + 'px'; heart.style.top = '40px'; 
+            checkImageExists(heart.src, function() { parentContainer.appendChild(heart); setTimeout(function() { heart.remove(); }, 1200); }, function() {});
         }
     </script>
 </body>
