@@ -6,7 +6,7 @@
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
-        /* 🛠️ 新增：雙人合體大盒子的尺寸（因為裝兩個人，寬度放大到 256px） */
+        /* 雙人合體大盒子的尺寸（因為裝兩個人，寬度放大到 256px） */
         .hug-container { position: absolute; width: 256px; height: 128px; z-index: 20; display: none; }
         .pet-img { width: 100%; height: 100%; cursor: grab; user-select: none; }
         .pet-img:active { cursor: grabbing; }
@@ -23,7 +23,7 @@
 </head>
 <body>
 
-    <!-- 🛠️ 建立隱藏的雙人合體互動舞台 -->
+    <!-- 建立隱藏的雙人合體互動舞台 -->
     <div id="hug-stage" class="hug-container">
         <img id="hug-img" class="pet-img" src="meet1_face.png" alt="擁抱互動">
     </div>
@@ -72,7 +72,19 @@
             container.style.top = petY + 'px';
 
             // 把控制資料塞進陣列
-            activePets.push({ container, petImg, data: { getX: () => petX, setX: (v) => { petX = v; container.style.left = v+'px'; }, getY: () => petY, setY: (v) => { petY = v; container.style.top = v+'px'; }, getIsDragging: () => isDragging, setHide: (h) => { container.style.display = h ? 'none' : 'block'; }, resetState: () => { petState = 'walk'; } } });
+            activePets.push({ 
+                container, 
+                petImg, 
+                data: { 
+                    getX: () => petX, 
+                    setX: (v) => { petX = v; container.style.left = v+'px'; }, 
+                    getY: () => petY, 
+                    setY: (v) => { petY = v; container.style.top = v+'px'; }, 
+                    getIsDragging: () => isDragging, 
+                    setHide: (h) => { container.style.display = h ? 'none' : 'block'; }, 
+                    resetState: () => { petState = 'walk'; } 
+                } 
+            });
 
             // 核心散步計時器
             setInterval(() => {
@@ -93,7 +105,7 @@
                         
                         if (Math.random() < 0.1) { spawnHeart(container, folderName); }
                         
-                        // ⏱️ 擁抱觸發雷達：兩人在走路時，如果靠得非常近（距離小於 100 像素），就有 40% 的機率觸發大團圓擁抱！
+                        // ⏱️ 擁抱觸發雷達：兩人在散步時，如果靠得非常近且滿足隨機條件，就觸發擁抱
                         if (index === 0 && activePets.length === 2) {
                             let dist = Math.abs(activePets[0].data.getX() - activePets[1].data.getX());
                             if (dist < 100 && !activePets[0].data.getIsDragging() && !activePets[1].data.getIsDragging() && Math.random() < 0.4) {
@@ -129,7 +141,7 @@
 
             // 滑鼠互動
             petImg.addEventListener('mousedown', (e) => {
-                if (isHuggingGlobal) return; // 正在抱抱時不能強行抓走
+                if (isHuggingGlobal) return; 
                 isDragging = true; petState = 'walk';
                 checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { petImg.src = walkDirection === -1 ? `${folderName}/shime3.png` : `${folderName}/shime3_r.png`; });
                 startX = e.clientX - petX; startY = e.clientY - petY;
@@ -146,7 +158,7 @@
             });
         });
 
-        // 🎬 核心：全自動擁抱動畫導演系統
+        // 🎬 全自動擁抱動畫導演系統
         function triggerHugEvent() {
             isHuggingGlobal = true;
             
@@ -163,24 +175,24 @@
             hugStage.style.top = midY + 'px';
             hugStage.style.display = 'block';
             
-            // ⏱️ 開始播放你設計的 5 張分鏡（每隔 1.2 秒換一幕，時間可以自己調）
+            // 開始播放你設計的 5 張分鏡
             setTimeout(() => { hugImg.src = 'meet1_face.png'; }, 0);       // 1. 面對面
             setTimeout(() => { hugImg.src = 'meet2_walk.png'; }, 1000);    // 2. 走近
             
             setTimeout(() => { 
                 hugImg.src = 'meet3_hug.png';                             // 3. 擁抱！
-                spawnHeart(hugStage, 'Takumi');                            // 抱抱時順便噴個愛心！
+                spawnHeart(hugStage, 'Takumi');                            
                 spawnHeart(hugStage, 'Aotsuki');
             }, 2200);
             
-            setTimeout(() => { hugImg.src = 'meet4_separate.png'; }, 4200]; // 4. 分開
+            setTimeout(() => { hugImg.src = 'meet4_separate.png'; }, 4200); // 4. 分開 (這裡已修復錯誤的中括號)
             setTimeout(() => { hugImg.src = 'meet5_shy.png'; }, 5400);     // 5. 害羞
             
-            // 🎬 互動結束，解散！
+            // 互動結束，解散！
             setTimeout(() => {
                 hugStage.style.display = 'none';
                 
-                // 讓兩隻角色在中間點的左右兩側重新誕生，各自彈開繼續散步
+                // 讓兩隻角色彈開
                 activePets[0].data.setX(midX - 40);
                 activePets[1].data.setX(midX + 160);
                 
@@ -190,7 +202,7 @@
                 activePets[0].data.setHide(false);
                 activePets[1].data.setHide(false);
                 
-                isHuggingGlobal = false; // 解除鎖定
+                isHuggingGlobal = false; 
             }, 7000);
         }
 
@@ -206,8 +218,3 @@
             checkImageExists(heart.src, () => {
                 parentContainer.appendChild(heart);
                 setTimeout(() => { heart.remove(); }, 1200);
-            }, () => {});
-        }
-    </script>
-</body>
-</html>
