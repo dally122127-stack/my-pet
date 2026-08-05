@@ -185,12 +185,14 @@
         function spawnHeart(parentContainer, folder) {
             const heart = document.createElement('img');
             heart.src = `${folder}/heart.png`; heart.className = 'heart-effect';
-            heart.style.left = (Math.random() * 160 + 40) + 'px'; heart.style.top = '-10px';
+            heart.style.left = (Math.random() * 160 + 40) + 'px'; 
+            heart.style.top = '40px'; // ✨ 改成 40px，愛心就會往下移動、貼近頭頂！
             checkImageExists(heart.src, () => {
                 parentContainer.appendChild(heart);
                 setTimeout(() => { heart.remove(); }, 1200);
             }, () => {});
         }
+
     </script>
 </body>
 </html>
