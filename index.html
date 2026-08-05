@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 終極修正版</title>
+    <title>雙人桌寵動態實驗室</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
@@ -38,9 +38,8 @@
         const hugStage = document.getElementById('hug-stage');
         const hugImg = document.getElementById('hug-img');
         let isHuggingGlobal = false;
-
-        // 初始化角色
-        petsData.forEach((petConfig, index) => {
+        // 初始化與控制每個角色的常規動態
+        petsData.forEach(function(petConfig, index) {
             const folderName = petConfig.folder;
             const myMaxSleepBreaths = petConfig.sleepBreaths;
 
@@ -52,25 +51,25 @@
             container.appendChild(petImg);
             document.body.appendChild(container);
 
-            let imgStandL = `${folderName}/shime1.png`;
-            let imgStandR = `${folderName}/shime1_r.png`;
-            let imgDrag = `${folderName}/drag.png`; 
-            let walkFramesL = [`${folderName}/shime2.png`, `${folderName}/shime3.png`];
-            let walkFramesR = [`${folderName}/shime2_r.png`, `${folderName}/shime3_r.png`];
-            let imgSitIn = `${folderName}/sit_in.png`;
-            let imgSitOut = `${folderName}/sit_out.png`;
-            let imgStandUp = `${folderName}/stand_up.png`;
-            let imgSleepDown = `${folderName}/sleep_down.png`;
-            let imgSleepIn = `${folderName}/sleep_in.png`;
-            let imgSleepOut = `${folderName}/sleep_out.png`;
-            let imgSleepUp = `${folderName}/sleep_up.png`;
+            let imgStandL = folderName + '/shime1.png';
+            let imgStandR = folderName + '/shime1_r.png';
+            let imgDrag = folderName + '/drag.png'; 
+            let walkFramesL = [folderName + '/shime2.png', folderName + '/shime3.png'];
+            let walkFramesR = [folderName + '/shime2_r.png', folderName + '/shime3_r.png'];
+            let imgSitIn = folderName + '/sit_in.png';
+            let imgSitOut = folderName + '/sit_out.png';
+            let imgStandUp = folderName + '/stand_up.png';
+            let imgSleepDown = folderName + '/sleep_down.png';
+            let imgSleepIn = folderName + '/sleep_in.png';
+            let imgSleepOut = folderName + '/sleep_out.png';
+            let imgSleepUp = folderName + '/sleep_up.png';
             
             let isDragging = false; 
-            let startX, startY;
+            let startX = 0, startY = 0;
             let petX = 100 + (index * 300); 
             let petY = 200;
             let currentFrameIndex = 0; 
-            let walkDirection = index === 0 ? 1 : -1;
+            let walkDirection = (index === 0) ? 1 : -1;
             let petState = 'walk'; 
             let breathCount = 0; 
             const maxBreaths = 3;
@@ -83,23 +82,23 @@
                 container: container, 
                 petImg: petImg, 
                 data: { 
-                    getX: () => petX, 
-                    setX: (v) => { petX = v; container.style.left = v + 'px'; }, 
-                    getY: () => petY, 
-                    setY: (v) => { petY = v; container.style.top = v + 'px'; }, 
-                    getIsDragging: () => isDragging, 
-                    setHide: (h) => { container.style.display = h ? 'none' : 'block'; }, 
-                    resetState: () => { petState = 'walk'; } 
+                    getX: function() { return petX; }, 
+                    setX: function(v) { petX = v; container.style.left = v + 'px'; }, 
+                    getY: function() { return petY; }, 
+                    setY: function(v) { petY = v; container.style.top = v + 'px'; }, 
+                    getIsDragging: function() { return isDragging; }, 
+                    setHide: function(h) { container.style.display = h ? 'none' : 'block'; }, 
+                    resetState: function() { petState = 'walk'; } 
                 } 
             });
 
-            // 每 0.4 秒執行一次動作計時器
-            setInterval(() => {
-                if (isDragging || isHuggingGlobal) return;
+            // 動作切換計時器
+            setInterval(function() {
+                if (isDragging || isHuggingGlobal) { return; }
                 
                 if (petState === 'walk') {
                     if (Math.random() < 0.8) { 
-                        if (Math.random() < 0.15) { walkDirection = walkDirection === -1 ? 1 : -1; }
+                        if (Math.random() < 0.15) { walkDirection = (walkDirection === -1) ? 1 : -1; }
                         petX += walkDirection * 12;
                         if (petX < 0) { petX = 0; walkDirection = 1; }
                         if (petX > window.innerWidth - 128) { petX = window.innerWidth - 128; walkDirection = -1; }
@@ -107,27 +106,27 @@
                         
                         currentFrameIndex = (currentFrameIndex + 1) % walkFramesL.length;
                         if (walkDirection === -1) {
-                            checkImageExists(walkFramesL[currentFrameIndex], () => { petImg.src = walkFramesL[currentFrameIndex]; }, () => { petImg.src = imgStandL; });
+                            checkImageExists(walkFramesL[currentFrameIndex], function() { petImg.src = walkFramesL[currentFrameIndex]; }, function() { petImg.src = imgStandL; });
                         } else {
-                            checkImageExists(walkFramesR[currentFrameIndex], () => { petImg.src = walkFramesR[currentFrameIndex]; }, () => { petImg.src = imgStandR; });
+                            checkImageExists(walkFramesR[currentFrameIndex], function() { petImg.src = walkFramesR[currentFrameIndex]; }, function() { petImg.src = imgStandR; });
                         }
                         petImg.style.transform = 'none'; 
                         
                         // 擁抱觸發雷達
                         if (index === 0 && activePets.length === 2) {
-                            const firstPet = activePets.slice(0, 1).pop();
-                            const secondPet = activePets.slice(1, 2).pop();
-                            let dist = Math.abs(firstPet.data.getX() - secondPet.data.getX());
-                            if (dist < 100 && !firstPet.data.getIsDragging() && !secondPet.data.getIsDragging() && Math.random() < 0.4) {
+                            const p1 = activePets[0];
+                            const p2 = activePets[1];
+                            let dist = Math.abs(p1.data.getX() - p2.data.getX());
+                            if (dist < 100 && !p1.data.getIsDragging() && !p2.data.getIsDragging() && Math.random() < 0.4) {
                                 triggerHugEvent();
                             }
                         }
                     } else {
                         if (Math.random() < 0.25) { 
                             if (Math.random() < 0.5) {
-                                petState = 'rest_sit'; breathCount = 0; checkImageExists(imgSitIn, () => { petImg.src = imgSitIn; }, () => { petImg.src = imgStandL; });
+                                petState = 'rest_sit'; breathCount = 0; checkImageExists(imgSitIn, function() { petImg.src = imgSitIn; }, function() { petImg.src = imgStandL; });
                             } else {
-                                petState = 'rest_sleep'; breathCount = 0; checkImageExists(imgSleepDown, () => { petImg.src = imgSleepDown; }, () => { petImg.src = imgStandL; });
+                                petState = 'rest_sleep'; breathCount = 0; checkImageExists(imgSleepDown, function() { petImg.src = imgSleepDown; }, function() { petImg.src = imgStandL; });
                             }
                         } else {
                             if (walkDirection === -1) { petImg.src = imgStandL; } else { petImg.src = imgStandR; }
@@ -138,30 +137,30 @@
                 else if (petState === 'rest_sit') {
                     if (breathCount < maxBreaths * 2) {
                         if (breathCount % 2 === 0) {
-                            checkImageExists(imgSitOut, () => { petImg.src = imgSitOut; }, () => { petImg.src = imgStandL; });
+                            checkImageExists(imgSitOut, function() { petImg.src = imgSitOut; }, function() { petImg.src = imgStandL; });
                         } else {
-                            checkImageExists(imgSitIn, () => { petImg.src = imgSitIn; }, () => { petImg.src = imgStandL; });
+                            checkImageExists(imgSitIn, function() { petImg.src = imgSitIn; }, function() { petImg.src = imgStandL; });
                         }
                         breathCount++;
                     } else {
                         petState = 'get_up';
-                        checkImageExists(imgStandUp, () => { petImg.src = imgStandUp; }, () => { petImg.src = imgStandL; });
+                        checkImageExists(imgStandUp, function() { petImg.src = imgStandUp; }, function() { petImg.src = imgStandL; });
                     }
                 }
                 else if (petState === 'rest_sleep') {
                     if (breathCount === 0) {
-                        checkImageExists(imgSleepDown, () => { petImg.src = imgSleepDown; }, () => { petImg.src = imgStandL; });
+                        checkImageExists(imgSleepDown, function() { petImg.src = imgSleepDown; }, function() { petImg.src = imgStandL; });
                         breathCount++;
                     } else if (breathCount <= myMaxSleepBreaths) {
                         if (breathCount % 2 === 0) {
-                            checkImageExists(imgSleepOut, () => { petImg.src = imgSleepOut; }, () => { petImg.src = imgStandL; });
+                            checkImageExists(imgSleepOut, function() { petImg.src = imgSleepOut; }, function() { petImg.src = imgStandL; });
                         } else {
-                            checkImageExists(imgSleepIn, () => { petImg.src = imgSleepIn; }, () => { petImg.src = imgStandL; });
+                            checkImageExists(imgSleepIn, function() { petImg.src = imgSleepIn; }, function() { petImg.src = imgStandL; });
                         }
                         breathCount++;
                     } else {
                         petState = 'wake_up';
-                        checkImageExists(imgSleepUp, () => { petImg.src = imgSleepUp; }, () => { petImg.src = imgStandL; });
+                        checkImageExists(imgSleepUp, function() { petImg.src = imgSleepUp; }, function() { petImg.src = imgStandL; });
                     } 
                 }
                 else if (petState === 'get_up' || petState === 'wake_up') {
@@ -170,17 +169,17 @@
                 }
             }, 400);
 
-            // 滑鼠抓取互動
-            petImg.addEventListener('mousedown', (e) => {
-                if (isHuggingGlobal) return; 
+            // 滑鼠互動
+            petImg.addEventListener('mousedown', function(e) {
+                if (isHuggingGlobal) { return; }
                 isDragging = true; 
                 petState = 'walk';
-                checkImageExists(imgDrag, () => { petImg.src = imgDrag; }, () => { petImg.src = walkDirection === -1 ? `${folderName}/shime3.png` : `${folderName}/shime3_r.png`; });
+                checkImageExists(imgDrag, function() { petImg.src = imgDrag; }, function() { petImg.src = (walkDirection === -1) ? (folderName + '/shime3.png') : (folderName + '/shime3_r.png'); });
                 startX = e.clientX - petX; 
                 startY = e.clientY - petY;
                 spawnHeart(container, folderName);
             });
-            document.addEventListener('mousemove', (e) => {
+            document.addEventListener('mousemove', function(e) {
                 if (isDragging) {
                     petX = e.clientX - startX; 
                     petY = e.clientY - startY;
@@ -188,16 +187,16 @@
                     container.style.top = petY + 'px';
                 }
             });
-            document.addEventListener('mouseup', () => { 
-                if (isDragging) { isDragging = false; petImg.src = walkDirection === -1 ? imgStandL : imgStandR; } 
+            document.addEventListener('mouseup', function() { 
+                if (isDragging) { isDragging = false; petImg.src = (walkDirection === -1) ? imgStandL : imgStandR; } 
             });
         });
-        // 🎬 全自動雙向擁抱導演系統（修復了陣列指標與大位移問題）
+        // 🎬 全自動雙向擁抱導演系統（標準非簡寫版）
         function triggerHugEvent() {
             isHuggingGlobal = true;
             
-            const firstPet = activePets.slice(0, 1).pop();
-            const secondPet = activePets.slice(1, 2).pop();
+            const firstPet = activePets[0];
+            const secondPet = activePets[1];
             
             let midX = (firstPet.data.getX() + secondPet.data.getX()) / 2 + 0; 
             let midY = (firstPet.data.getY() + secondPet.data.getY()) / 2;
@@ -209,23 +208,28 @@
             hugStage.style.top = midY + 'px';
             hugStage.style.display = 'block';
             
-            const prefix = Math.random() < 0.5 ? '' : 'r_';
+            let prefix = '';
+            if (Math.random() < 0.5) {
+                prefix = '';
+            } else {
+                prefix = 'r_';
+            }
             
-            setTimeout(() => { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
-            setTimeout(() => { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
-            setTimeout(() => { 
+            setTimeout(function() { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
+            setTimeout(function() { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
+            setTimeout(function() { 
                 hugImg.src = prefix + 'meet3_hug.png';                             
                 spawnHeart(hugStage, 'Takumi');                            
                 spawnHeart(hugStage, 'Aotsuki');
             }, 2200);
-            setTimeout(() => { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
+            setTimeout(function() { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
             setTimeout(() => { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
             
             // 互動結束，解散！
-            setTimeout(() => {
+            setTimeout(function() {
                 hugStage.style.display = 'none';
                 
-                // 鎖死大位移，強制拉回中心點
+                // 強制將隱形座標拉回原地，徹底解決位移問題！
                 firstPet.data.setX(midX - 40);
                 secondPet.data.setX(midX + 160);
                 firstPet.data.setY(midY);
@@ -249,14 +253,16 @@
 
         function spawnHeart(parentContainer, folder) {
             const heart = document.createElement('img');
-            heart.src = `${folder}/heart.png`; 
+            heart.src = folder + '/heart.png'; 
             heart.className = 'heart-effect';
             heart.style.left = (Math.random() * 160 + 40) + 'px'; 
             heart.style.top = '40px'; 
-            checkImageExists(heart.src, () => {
+            checkImageExists(heart.src, function() {
                 parentContainer.appendChild(heart);
-                setTimeout(() => { heart.remove(); }, 1200);
-            }, () => {});
+                setTimeout(function() { heart.remove(); }, 1200);
+            }, function() {
+                // 找不到愛心圖不處理，不彈破圖
+            });
         }
     </script>
 </body>
