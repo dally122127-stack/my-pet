@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 微笑發呆升級版</title>
+    <title>雙人桌寵動態實驗室 - 發呆修復版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
@@ -74,9 +74,8 @@
                             if (Math.random() < 0.5) { pState0 = 'rest_sit'; bCnt0 = 0; let sit0 = (dir0 === -1) ? 'Takumi/sit_in.png' : 'Takumi/sit_in_r.png'; img0.src = sit0; } 
                             else { pState0 = 'rest_sleep'; bCnt0 = 0; img0.src = 'Takumi/sleep_down.png'; }
                         } else { 
-                            img0.src = (Math.random() < 0.5) ? 
-                                ((dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png') : 
-                                ((dir0 === -1) ? 'Takumi/shime1_alt.png' : 'Takumi/shime1_alt_r.png');
+                            // ✨ 完美修復：拔除 _alt 尾巴，隨機 100% 都安全指向原來的 shime1 發呆姿勢
+                            img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png';
                         }
                     }
                 }
@@ -85,7 +84,7 @@
                     if (bCnt0 < 6) { img0.src = (bCnt0 % 2 === 0) ? sOut0 : sIn0; bCnt0++; } 
                     else {
                         pState0 = 'walk';
-                        img0.src = (Math.random() < 0.5) ? ((dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png') : ((dir0 === -1) ? 'Takumi/shime1_alt.png' : 'Takumi/shime1_alt_r.png');
+                        img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png';
                     }
                 }
                 else if (pState0 === 'rest_sit') {
@@ -122,9 +121,8 @@
                             if (Math.random() < 0.5) { pState1 = 'rest_sit'; bCnt1 = 0; let sit1 = (dir1 === -1) ? 'Aotsuki/sit_in.png' : 'Aotsuki/sit_in_r.png'; img1.src = sit1; } 
                             else { pState1 = 'rest_sleep'; bCnt1 = 0; img1.src = 'Aotsuki/sleep_down.png'; }
                         } else { 
-                            img1.src = (Math.random() < 0.5) ? 
-                                ((dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png') : 
-                                ((dir1 === -1) ? 'Aotsuki/shime1_alt.png' : 'Aotsuki/shime1_alt_r.png');
+                            // ✨ 完美修復：Aotsuki 同步安全改回經典的 shime1 發呆姿勢
+                            img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png';
                         }
                     }
                 }
@@ -133,7 +131,7 @@
                     if (bCnt1 < 6) { img1.src = (bCnt1 % 2 === 0) ? sOut1 : sIn1; bCnt1++; } 
                     else {
                         pState1 = 'walk';
-                        img1.src = (Math.random() < 0.5) ? ((dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png') : ((dir1 === -1) ? 'Aotsuki/shime1_alt.png' : 'Aotsuki/shime1_alt_r.png');
+                        img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png';
                     }
                 }
                 else if (pState1 === 'rest_sit') {
@@ -191,7 +189,6 @@
             setTimeout(function() {
                 hugStage.style.display = 'none';
                 
-                // 強制注入原地實體像素坐標
                 pX0 = midX - 40; pY0 = midY;
                 pX1 = midX + 160; pY1 = midY;
                 
