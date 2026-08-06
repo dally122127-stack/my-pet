@@ -136,113 +136,102 @@
                     let spOut1 = (dir1 === -1) ? 'Aotsuki/sleep_out.png' : 'Aotsuki/sleep_out_r.png'; let spUp1 = (dir1 === -1) ? 'Aotsuki/sleep_up.png' : 'Aotsuki/sleep_up_r.png';
                     if (bCnt1 === 0) { img1.src = spD1; bCnt1++; } else if (bCnt1 <= 6) { img1.src = (bCnt1 % 2 === 0) ? spOut1 : spIn1; bCnt1++; } else { pState1 = 'wake_up'; img1.src = spUp1; }
                 }
-                else if (pState1 === 'get_up' || pState1 === 'wake_up') { pState1 = 'walk'; img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; }
+                else if (pState1 === 'get_up' || pState1 === 'wake_up') { 
+                    pState1 = 'walk'; 
+                    img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; 
+                }
+            }, 400);
+
+            // 滑鼠抓取互動 - 角色 0 (Takumi)
+            let startX0 = 0, startY0 = 0;
+            img0.addEventListener('mousedown', function(e) {
+                if (isHuggingGlobal) return; isD0 = true; pState0 = 'walk';
+                let drag0 = (dir0 === -1) ? 'Takumi/shime3.png' : 'Takumi/shime3_r.png';
+                checkImageExists('Takumi/drag.png', function() { img0.src = 'Takumi/drag.png'; }, function() { img0.src = drag0; });
+                startX0 = e.clientX - pX0; startY0 = e.clientY - pY0; spawnHeart(el0, 'Takumi');
+            });
+            document.addEventListener('mousemove', function(e) { if (isD0) { pX0 = e.clientX - startX0; pY0 = e.clientY - startY0; el0.style.left = pX0 + 'px'; el0.style.top = pY0 + 'px'; } });
+            document.addEventListener('mouseup', function() { if (isD0) { isD0 = false; img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png'; } });
+
+            // 滑鼠抓取互動 - 角色 1 (Aotsuki)
+            let startX1 = 0, startY1 = 0;
+            img1.addEventListener('mousedown', function(e) {
+                if (isHuggingGlobal) return; isD1 = true; pState1 = 'walk';
+                let drag1 = (dir1 === -1) ? 'Aotsuki/shime3.png' : 'Aotsuki/shime3_r.png';
+                checkImageExists('Aotsuki/drag.png', function() { img1.src = 'Aotsuki/drag.png'; }, function() { img1.src = drag1; });
+                startX1 = e.clientX - pX1; startY1 = e.clientY - pY1; spawnHeart(el1, 'Aotsuki');
+            });
+            document.addEventListener('mousemove', function(e) { if (isD1) { pX1 = e.clientX - startX1; pY1 = e.clientY - startY1; el1.style.left = pX1 + 'px'; el1.style.top = pY1 + 'px'; } });
+            document.addEventListener('mouseup', function() { if (isD1) { isD1 = false; img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; } });
+
+            // 🎬 全自動雙向擁抱導演系統（身分證 ID 實體強制物理對齊版）
+            function triggerHugEvent() {
+                isHuggingGlobal = true;
+                
+                // 直接抓取網頁實體 HTML 標籤，徹底拔除錯字
+                const elementPet0 = document.getElementById('pet-id-0');
+                const elementPet1 = document.getElementById('pet-id-1');
+                
+                // 計算絕對正中心點
+                let midX = (pX0 + pX1) / 2; 
+                let midY = (pY0 + pY1) / 2;
+                
+                // 隱形常規身體
+                if(elementPet0) elementPet0.style.display = 'none';
+                if(elementPet1) elementPet1.style.display = 'none';
+                
+                // 架設大舞台
+                hugStage.style.left = midX + 'px';
+                hugStage.style.top = midY + 'px';
+                hugStage.style.display = 'block';
+                
+                let prefix = (Math.random() < 0.5) ? '' : 'r_';
+                
+                // 順暢播放 5 張手繪分鏡圖
+                setTimeout(function() { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
+                setTimeout(function() { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
+                setTimeout(function() { 
+                    hugImg.src = prefix + 'meet3_hug.png';                             
+                    spawnHeart(hugStage, 'Takumi'); spawnHeart(hugStage, 'Aotsuki');
+                }, 2200);
+                setTimeout(function() { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
+                setTimeout(function() { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
+                
+                // 🎬 7 秒擁抱劇場結束，原地歸位解散
+                setTimeout(function() {
+                    hugStage.style.display = 'none';
+                    
+                    // 🎯 灌入全域記憶庫，同步洗掉偷跑的位置
+                    pX0 = midX - 40; pY0 = midY;
+                    pX1 = midX + 160; pY1 = midY;
+                    
+                    // 🎯 物理死命令：對準網頁實體方框強行打樁歸位，消滅位移漏洞！
+                    if(elementPet0) {
+                        elementPet0.style.left = pX0 + 'px';
+                        elementPet0.style.top = pY0 + 'px';
+                        elementPet0.style.display = 'block';
+                    }
+                    if(elementPet1) {
+                        elementPet1.style.left = pX1 + 'px';
+                        elementPet1.style.top = pY1 + 'px';
+                        elementPet1.style.display = 'block';
+                    }
+                    
+                    // 換回初始朝向圖
+                    img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png';
+                    img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png';
+
+                    pS0 = 'walk'; pS1 = 'walk';
+                    isHuggingGlobal = false; 
+                }, 7000);
             }
-        }, 400);
-        // 滑鼠抓取互動 - 角色 0 (Takumi)
-        let startX0 = 0, startY0 = 0;
-        img0.addEventListener('mousedown', function(e) {
-            if (isHuggingGlobal) return; isD0 = true; pState0 = 'walk';
-            let drag0 = (dir0 === -1) ? 'Takumi/shime3.png' : 'Takumi/shime3_r.png';
-            checkImageExists('Takumi/drag.png', function() { img0.src = 'Takumi/drag.png'; }, function() { img0.src = drag0; });
-            startX0 = e.clientX - pX0; startY0 = e.clientY - pY0; spawnHeart(el0, 'Takumi');
-        });
-        document.addEventListener('mousemove', function(e) { if (isD0) { pX0 = e.clientX - startX0; pY0 = e.clientY - startY0; el0.style.left = pX0 + 'px'; el0.style.top = pY0 + 'px'; } });
-        document.addEventListener('mouseup', function() { if (isD0) { isD0 = false; img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png'; } });
 
-        // 滑鼠抓取互動 - 角色 1 (Aotsuki)
-        let startX1 = 0, startY1 = 0;
-        img1.addEventListener('mousedown', function(e) {
-            if (isHuggingGlobal) return; isD1 = true; pState1 = 'walk';
-            let drag1 = (dir1 === -1) ? 'Aotsuki/shime3.png' : 'Aotsuki/shime3_r.png';
-            checkImageExists('Aotsuki/drag.png', function() { img1.src = 'Aotsuki/drag.png'; }, function() { img1.src = drag1; });
-            startX1 = e.clientX - pX1; startY1 = e.clientY - pY1; spawnHeart(el1, 'Aotsuki');
-        });
-        document.addEventListener('mousemove', function(e) { if (isD1) { pX1 = e.clientX - startX1; pY1 = e.clientY - startY1; el1.style.left = pX1 + 'px'; el1.style.top = pY1 + 'px'; } });
-        document.addEventListener('mouseup', function() { if (isD1) { isD1 = false; img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; } });
-
-        // 🎬 全自動雙向擁抱導演系統（身分證 ID 實體強制拉回，堵死大位移）
-        function triggerHugEvent() {
-            isHuggingGlobal = true;
-            
-            // 直接抓取畫面的實體 HTML 標籤，斷開任何後台物件的暫存記憶覆蓋
-            const elementPet0 = document.getElementById('pet-id-0');
-            const elementPet1 = document.getElementById('pet-id-1');
-            
-            // 計算兩個角色的絕對中心點
-            let midX = (pX0 + pX1) / 2; 
-            let midY = (pY0 + pY1) / 2;
-            
-            // 直接強行將兩隻角色的身體隱形
-            if(elementPet0) elementPet0.style.display = 'none';
-            if(elementPet1) elementPet1.style.display = 'none';
-            
-            // 架設擁抱合體大舞台
-            hugStage.style.left = midX + 'px';
-            hugStage.style.top = midY + 'px';
-            hugStage.style.display = 'block';
-            
-            let prefix = (Math.random() < 0.5) ? '' : 'r_';
-            
-            // 順暢更換 5 張手繪分鏡圖
-            setTimeout(function() { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
-            setTimeout(function() { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
-            setTimeout(function() { 
-                hugImg.src = prefix + 'meet3_hug.png';                             
-                spawnHeart(hugStage, 'Takumi'); spawnHeart(hugStage, 'Aotsuki');
-            }, 2200);
-            setTimeout(function() { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
-            setTimeout(function() { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
-            
-            // 🎬 7 秒擁抱結束，原地解散死命令
-            setTimeout(function() {
-                hugStage.style.display = 'none';
-                
-                // 🎯 灌入全域記憶庫，同步更新兩人的位置，杜絕偷跑
-                pX0 = midX - 40; pY0 = midY;
-                pX1 = midX + 160; pY1 = midY;
-                
-                // 🎯 終極死命令：直接對準網頁上的實體方框打樁，強制歸位，消滅位移！
-                if(elementPet0) {
-                    elementPet0.style.left = pX0 + 'px';
-                    elementPet0.style.top = pY0 + 'px';
-                    elementPet0.style.display = 'block';
-                }
-                if(elementPet1) {
-                    elementPet1.style.left = pX1 + 'px';
-                    elementPet1.style.top = pY1 + 'px';
-                    elementPet1.style.display = 'block';
-                }
-                
-                // 回歸走路圖片與狀態
-                img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png';
-                img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png';
-
-                pState0 = 'walk'; pState1 = 'walk';
-                isHuggingGlobal = false; 
-            }, 7000);
-        }
-
-        // 萬用安全檢查圖片功能
-        function checkImageExists(url, success, error) {
-            const img = new Image(); 
-            img.onload = success; 
-            img.onerror = error; 
-            img.src = url;
-        }
-
-        // 噴愛心特效（40px 頭頂高度完美對齊）
-        function spawnHeart(parentContainer, folder) {
-            const heart = document.createElement('img');
-            heart.src = folder + '/heart.png'; 
-            heart.className = 'heart-effect';
-            heart.style.left = (Math.random() * 160 + 40) + 'px'; 
-            heart.style.top = '40px'; 
-            checkImageExists(heart.src, function() {
-                parentContainer.appendChild(heart);
-                setTimeout(function() { heart.remove(); }, 1200);
-            }, function() {});
-        }
+            function checkImageExists(url, success, error) { const img = new Image(); img.onload = success; img.onerror = error; img.src = url; }
+            function spawnHeart(parentContainer, folder) {
+                const heart = document.createElement('img'); heart.src = folder + '/heart.png'; heart.className = 'heart-effect';
+                heart.style.left = (Math.random() * 160 + 40) + 'px'; heart.style.top = '40px'; 
+                checkImageExists(heart.src, function() { parentContainer.appendChild(heart); setTimeout(function() { heart.remove(); }, 1200); }, function() {});
+            }
 
         }; // 🔒 window.onload 結尾
     </script>
