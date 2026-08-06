@@ -112,8 +112,12 @@
                         petImg.style.transform = 'none'; 
                         
                         // 擁抱觸發雷達
+                        // 🎯 終極修復：改用完全不使用中括號的 pop 安全語法，徹底防範號碼被系統吃掉！
                         if (index === 0 && activePets.length === 2) {
-                            let dist = Math.abs(activePets[0].pos.x - activePets[1].pos.x);
+                            const petFirst = activePets.slice(0, 1).pop();
+                            const petSecond = activePets.slice(1, 2).pop();
+
+                            let dist = Math.abs(petFirst.pos.x - petSecond.pos.x);
                             if (dist < 100 && Math.random() < 0.4) {
                                 triggerHugEvent();
                             }
