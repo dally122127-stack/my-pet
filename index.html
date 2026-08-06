@@ -2,10 +2,11 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>雙人桌寵動態實驗室 - 發呆修復版</title>
+    <title>雙人桌寵動態實驗室 - 完整無錯版</title>
     <style>
         body { margin: 0; overflow: hidden; background: transparent; }
         .pet-container { position: absolute; width: 128px; height: 128px; z-index: 10; }
+        /* 雙人合體大盒子的尺寸（寬度放大到 256px，並加入防變形設定） */
         .hug-container { position: absolute; width: 256px; height: 128px; z-index: 20; display: none; aspect-ratio: auto; }
         .pet-img { width: auto; height: 100%; cursor: grab; user-select: none; }
         .pet-img:active { cursor: grabbing; }
@@ -22,23 +23,24 @@
 </head>
 <body>
 
-    <!-- 雙人合體互動舞台 -->
+    <!-- 建立隱藏的雙人合體互動舞台 -->
     <div id="hug-stage" class="hug-container">
         <img id="hug-img" class="pet-img" src="meet1_face.png" alt="擁抱互動">
     </div>
 
-    <!-- 實體角色 HTML 結構 -->
+    <!-- 實體角色 HTML 結構，確保全網頁唯一，防止多重複製 -->
     <div id="pet-id-0" class="pet-container"><img id="img-0" class="pet-img" src="Takumi/shime1.png" alt="Takumi"></div>
     <div id="pet-id-1" class="pet-container"><img id="img-1" class="pet-img" src="Aotsuki/shime1.png" alt="Aotsuki"></div>
 
     <script>
+        // 🔒 安全防禦防護鎖：確保網頁完全載入後，全網頁只會啟動唯一一個桌寵時鐘
         window.onload = function() {
             
         const hugStage = document.getElementById('hug-stage');
         const hugImg = document.getElementById('hug-img');
         let isHuggingGlobal = false;
 
-        // 全域核心記憶體
+        // 完全獨立的全域實體記憶體
         let pX0 = 100, pY0 = 200, pState0 = 'walk', isD0 = false, dir0 = 1, fIdx0 = 0, bCnt0 = 0;
         let pX1 = 500, pY1 = 200, pState1 = 'walk', isD1 = false, dir1 = -1, fIdx1 = 0, bCnt1 = 0;
 
@@ -47,7 +49,7 @@
 
         el0.style.left = pX0 + 'px'; el0.style.top = pY0 + 'px';
         el1.style.left = pX1 + 'px'; el1.style.top = pY1 + 'px';
-        // ⏱️ 全網頁唯一大時鐘控制核心
+        // ⏱️ 全網頁唯一大時鐘控制核心（負責處理兩隻角色的常規散步、坐姿、睡姿與微笑呼吸）
         setInterval(function() {
             if (isHuggingGlobal) { return; }
 
@@ -64,6 +66,7 @@
                         let stand0 = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png';
                         checkImageExists(wk0[fIdx0], function() { img0.src = wk0[fIdx0]; }, function() { img0.src = stand0; });
                         
+                        // 擁抱觸發雷達
                         let dist = Math.abs(pX0 - pX1);
                         if (dist < 100 && !isD0 && !isD1) { triggerHugEvent(); }
                     } else {
@@ -72,20 +75,14 @@
                             img0.src = (dir0 === -1) ? 'Takumi/smile_in.png' : 'Takumi/smile_in_r.png';
                         } else if (Math.random() < 0.4) {
                             if (Math.random() < 0.5) { pState0 = 'rest_sit'; bCnt0 = 0; let sit0 = (dir0 === -1) ? 'Takumi/sit_in.png' : 'Takumi/sit_in_r.png'; img0.src = sit0; } 
-                            else { pState0 = 'rest_sleep'; bCnt0 = 0; img0.src = 'Takumi/sleep_down.png'; }
-                        } else { 
-                            // ✨ 完美修復：拔除 _alt 尾巴，隨機 100% 都安全指向原來的 shime1 發呆姿勢
-                            img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png';
-                        }
+                            else { pState0 = 'rest_sleep'; bCnt0 = 0; img0.src = (dir0 === -1) ? 'Takumi/sleep_down.png' : 'Takumi/sleep_down_r.png'; }
+                        } else { img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png'; }
                     }
                 }
                 else if (pState0 === 'smile_breath') {
                     let sIn0 = (dir0 === -1) ? 'Takumi/smile_in.png' : 'Takumi/smile_in_r.png'; let sOut0 = (dir0 === -1) ? 'Takumi/smile_out.png' : 'Takumi/smile_out_r.png';
                     if (bCnt0 < 6) { img0.src = (bCnt0 % 2 === 0) ? sOut0 : sIn0; bCnt0++; } 
-                    else {
-                        pState0 = 'walk';
-                        img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png';
-                    }
+                    else { pState0 = 'walk'; img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png'; }
                 }
                 else if (pState0 === 'rest_sit') {
                     if (bCnt0 < 6) {
@@ -119,20 +116,14 @@
                             img1.src = (dir1 === -1) ? 'Aotsuki/smile_in.png' : 'Aotsuki/smile_in_r.png';
                         } else if (Math.random() < 0.4) {
                             if (Math.random() < 0.5) { pState1 = 'rest_sit'; bCnt1 = 0; let sit1 = (dir1 === -1) ? 'Aotsuki/sit_in.png' : 'Aotsuki/sit_in_r.png'; img1.src = sit1; } 
-                            else { pState1 = 'rest_sleep'; bCnt1 = 0; img1.src = 'Aotsuki/sleep_down.png'; }
-                        } else { 
-                            // ✨ 完美修復：Aotsuki 同步安全改回經典的 shime1 發呆姿勢
-                            img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png';
-                        }
+                            else { pState1 = 'rest_sleep'; bCnt1 = 0; img1.src = (dir1 === -1) ? 'Aotsuki/sleep_down.png' : 'Aotsuki/sleep_down_r.png'; }
+                        } else { img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; }
                     }
                 }
                 else if (pState1 === 'smile_breath') {
                     let sIn1 = (dir1 === -1) ? 'Aotsuki/smile_in.png' : 'Aotsuki/smile_in_r.png'; let sOut1 = (dir1 === -1) ? 'Aotsuki/smile_out.png' : 'Aotsuki/smile_out_r.png';
                     if (bCnt1 < 6) { img1.src = (bCnt1 % 2 === 0) ? sOut1 : sIn1; bCnt1++; } 
-                    else {
-                        pState1 = 'walk';
-                        img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png';
-                    }
+                    else { pState1 = 'walk'; img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; }
                 }
                 else if (pState1 === 'rest_sit') {
                     if (bCnt1 < 6) {
@@ -148,7 +139,7 @@
                 else if (pState1 === 'get_up' || pState1 === 'wake_up') { pState1 = 'walk'; img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; }
             }
         }, 400);
-        // 滑鼠抓取互動 - 角色 0
+        // 滑鼠抓取互動 - 角色 0 (Takumi)
         let startX0 = 0, startY0 = 0;
         img0.addEventListener('mousedown', function(e) {
             if (isHuggingGlobal) return; isD0 = true; pState0 = 'walk';
@@ -159,7 +150,7 @@
         document.addEventListener('mousemove', function(e) { if (isD0) { pX0 = e.clientX - startX0; pY0 = e.clientY - startY0; el0.style.left = pX0 + 'px'; el0.style.top = pY0 + 'px'; } });
         document.addEventListener('mouseup', function() { if (isD0) { isD0 = false; img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png'; } });
 
-        // 滑鼠抓取互動 - 角色 1
+        // 滑鼠抓取互動 - 角色 1 (Aotsuki)
         let startX1 = 0, startY1 = 0;
         img1.addEventListener('mousedown', function(e) {
             if (isHuggingGlobal) return; isD1 = true; pState1 = 'walk';
@@ -170,31 +161,60 @@
         document.addEventListener('mousemove', function(e) { if (isD1) { pX1 = e.clientX - startX1; pY1 = e.clientY - startY1; el1.style.left = pX1 + 'px'; el1.style.top = pY1 + 'px'; } });
         document.addEventListener('mouseup', function() { if (isD1) { isD1 = false; img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png'; } });
 
-        // 🎬 全自動雙向擁抱導演系統
+        // 🎬 全自動雙向擁抱導演系統（身分證 ID 實體強制拉回，堵死大位移）
         function triggerHugEvent() {
             isHuggingGlobal = true;
-            let midX = (pX0 + pX1) / 2; let midY = (pY0 + pY1) / 2;
             
-            el0.style.display = 'none'; el1.style.display = 'none';
-            hugStage.style.left = midX + 'px'; hugStage.style.top = midY + 'px'; hugStage.style.display = 'block';
+            // 直接抓取畫面的實體 HTML 標籤，斷開任何後台物件的暫存記憶覆蓋
+            const elementPet0 = document.getElementById('pet-id-0');
+            const elementPet1 = document.getElementById('pet-id-1');
+            
+            // 計算兩個角色的絕對中心點
+            let midX = (pX0 + pX1) / 2; 
+            let midY = (pY0 + pY1) / 2;
+            
+            // 直接強行將兩隻角色的身體隱形
+            if(elementPet0) elementPet0.style.display = 'none';
+            if(elementPet1) elementPet1.style.display = 'none';
+            
+            // 架設擁抱合體大舞台
+            hugStage.style.left = midX + 'px';
+            hugStage.style.top = midY + 'px';
+            hugStage.style.display = 'block';
             
             let prefix = (Math.random() < 0.5) ? '' : 'r_';
             
+            // 順暢更換 5 張手繪分鏡圖
             setTimeout(function() { hugImg.src = prefix + 'meet1_face.png'; }, 0);       
             setTimeout(function() { hugImg.src = prefix + 'meet2_walk.png'; }, 1000);    
-            setTimeout(function() { hugImg.src = prefix + 'meet3_hug.png'; spawnHeart(hugStage, 'Takumi'); spawnHeart(hugStage, 'Aotsuki'); }, 2200);
+            setTimeout(function() { 
+                hugImg.src = prefix + 'meet3_hug.png';                             
+                spawnHeart(hugStage, 'Takumi'); spawnHeart(hugStage, 'Aotsuki');
+            }, 2200);
             setTimeout(function() { hugImg.src = prefix + 'meet4_separate.png'; }, 4200); 
             setTimeout(function() { hugImg.src = prefix + 'meet5_shy.png'; }, 5400);     
             
+            // 🎬 7 秒擁抱結束，原地解散死命令
             setTimeout(function() {
                 hugStage.style.display = 'none';
                 
+                // 🎯 灌入全域記憶庫，同步更新兩人的位置，杜絕偷跑
                 pX0 = midX - 40; pY0 = midY;
                 pX1 = midX + 160; pY1 = midY;
                 
-                el0.style.left = pX0 + 'px'; el0.style.top = pY0 + 'px'; el0.style.display = 'block';
-                el1.style.left = pX1 + 'px'; el1.style.top = pY1 + 'px'; el1.style.display = 'block';
+                // 🎯 終極死命令：直接對準網頁上的實體方框打樁，強制歸位，消滅位移！
+                if(elementPet0) {
+                    elementPet0.style.left = pX0 + 'px';
+                    elementPet0.style.top = pY0 + 'px';
+                    elementPet0.style.display = 'block';
+                }
+                if(elementPet1) {
+                    elementPet1.style.left = pX1 + 'px';
+                    elementPet1.style.top = pY1 + 'px';
+                    elementPet1.style.display = 'block';
+                }
                 
+                // 回歸走路圖片與狀態
                 img0.src = (dir0 === -1) ? 'Takumi/shime1.png' : 'Takumi/shime1_r.png';
                 img1.src = (dir1 === -1) ? 'Aotsuki/shime1.png' : 'Aotsuki/shime1_r.png';
 
@@ -203,11 +223,25 @@
             }, 7000);
         }
 
-        function checkImageExists(url, success, error) { const img = new Image(); img.onload = success; img.onerror = error; img.src = url; }
+        // 萬用安全檢查圖片功能
+        function checkImageExists(url, success, error) {
+            const img = new Image(); 
+            img.onload = success; 
+            img.onerror = error; 
+            img.src = url;
+        }
+
+        // 噴愛心特效（40px 頭頂高度完美對齊）
         function spawnHeart(parentContainer, folder) {
-            const heart = document.createElement('img'); heart.src = folder + '/heart.png'; heart.className = 'heart-effect';
-            heart.style.left = (Math.random() * 160 + 40) + 'px'; heart.style.top = '40px'; 
-            checkImageExists(heart.src, function() { parentContainer.appendChild(heart); setTimeout(function() { heart.remove(); }, 1200); }, function() {});
+            const heart = document.createElement('img');
+            heart.src = folder + '/heart.png'; 
+            heart.className = 'heart-effect';
+            heart.style.left = (Math.random() * 160 + 40) + 'px'; 
+            heart.style.top = '40px'; 
+            checkImageExists(heart.src, function() {
+                parentContainer.appendChild(heart);
+                setTimeout(function() { heart.remove(); }, 1200);
+            }, function() {});
         }
 
         }; // 🔒 window.onload 結尾
